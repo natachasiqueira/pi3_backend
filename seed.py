@@ -1,5 +1,5 @@
-from run import create_app, db
-from run.models import Usuario, Funcionario, CategoriaServico, CategoriaFinanceira
+from app import create_app, db
+from app.models import Usuario, Funcionario, CategoriaServico, CategoriaFinanceira
 from werkzeug.security import generate_password_hash
 
 def seed():
@@ -43,5 +43,5 @@ def seed():
         db.session.commit()
         print("Seed finalizado.")
 
-        if __name__ == '__main__':
-            seed()
+if __name__ == '__main__':
+    seed()
