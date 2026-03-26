@@ -1,0 +1,214 @@
+PRD – Projeto Integrador III
+
+1. Contexto e Visão do Produto
+•	Problema / Oportunidade: O estúdio de beleza necessita de uma aplicação web para gestão de agendamentos e controle financeiro. Atualmente, o local opera com apenas uma profissional, que também atua como administradora do sistema. O desafio a ser evitado é o engessamento da plataforma: o sistema não será modelado como se existisse apenas uma pessoa. A oportunidade é estruturar o software desde o início como se pudesse haver múltiplos profissionais. Dessa forma, quando houver crescimento do negócio, a base já estará preparada, evitando refatorações custosas.
+•	Visão da Solução (MVP): A solução será uma aplicação completa, composta por front-end (HTML, CSS e JavaScript), back-end com API REST e banco de dados relacional. O objetivo principal é entregar um MVP sólido e estruturado corretamente. O sistema garantirá que a estrutura permita a evolução futura de forma natural. Na prática, isso significa que sempre que o sistema precisar identificar o profissional responsável por um serviço, ele fará a busca como se pudesse haver vários. No momento atual, o retorno será de apenas um profissional com atribuição automática.
+2. Perfis de Usuário e Controle de Acesso
+Papéis (Roles) do Sistema: O sistema trabalha com três perfis distintos de acesso. A autorização é controlada no back-end, garantindo o isolamento das funções. Um mesmo usuário pode possuir mais de uma role ativa simultaneamente, o que moldará o menu e a interface de acordo com as suas permissões.
+•	ADMIN: Possui acesso exclusivo aos módulos de gestão (Financeiro e Administração). Não acessa as interfaces de uso pessoal do cliente ou do funcionário (a menos que possua a role correspondente ativa).
+•	FUNCIONARIO: Possui acesso exclusivo à Área do Funcionário. Visualiza sua rotina em formato de calendário com uma tabela de agendamentos abaixo. Pode gerenciar os status dos seus atendimentos e editar o próprio perfil (dados pessoais e senha). Por segurança, a criação de sua conta é restrita ao ADMIN.
+•	CLIENTE: Possui acesso exclusivo à Área do Cliente. Visualiza sua rotina em formato de calendário com uma tabela de agendamentos abaixo. Pode gerenciar os status permitidos (confirmar/cancelar), editar o próprio perfil (dados pessoais e senha) e possui a exclusividade de realizar novos agendamentos.
+Estrutura de Cadastro e Campos Obrigatórios: Todo usuário, independentemente do perfil, possuirá os seguintes dados armazenados de forma segura:
+•	ID: Gerado automaticamente.
+•	Nome Completo: Campo de texto com limite máximo de 255 caracteres.
+•	E-mail: Único no sistema, validado com formato padrão (texto@texto.texto) e utilizado como Login de acesso.
+•	Telefone: Campo com aplicação de máscara de formatação obrigatória no padrão (XX) XXXXX-XXXX.
+•	Senha: Criptografada no banco. Deve conter no mínimo 8 caracteres, incluindo obrigatoriamente letras, números e pelo menos uma letra maiúscula.
+•	Role: Identificador do perfil de acesso (ADMIN, FUNCIONARIO, CLIENTE).
+Regra de Múltiplos Perfis e Usuário Seed (Primeiro Acesso): Para que a aplicação possa ser acessada e configurada pela primeira vez, o banco de dados será inicializado com um usuário padrão (Seed) já cadastrado:
+•	Nome: Ellen Patrício
+•	E-mail: ellenpatricio@studio.com.br
+•	Telefone: (11) 98765-4321
+•	Senha: Admin123
+•	Roles ativas: [ADMIN, FUNCIONARIO]
+•	Comportamento: Ao fazer login, esta usuária visualizará tanto as ferramentas de gestão quanto a sua própria agenda. Caso o vínculo de FUNCIONARIO seja desativado pelo painel administrativo, a usuária continuará com acesso total como ADMIN, mas deixará de aparecer como profissional elegível para novos agendamentos por parte dos clientes.
+Adequação à LGPD e Exclusão de Contas:
+•	Consentimento (Opt-in): Na tela de cadastro de novos clientes existirá um checkbox obrigatório informando sobre a coleta de dados e adequação à Lei Geral de Proteção de Dados (LGPD).
+•	Anonimização (Direito de Exclusão): O cliente terá um botão em seu perfil para realizar a exclusão da conta de forma autônoma a qualquer momento. O sistema exibirá uma mensagem de confirmação e, após o aceite, aplicará uma anonimização irreversível:
+o	O ID e a role permanecem os mesmos.
+o	O Nome é alterado para o padrão "Anonimizado".
+o	O E-mail é alterado para o formato "id@anonimizado.com".
+o	O Telefone é alterado para "(00) 00000-0000".
+
+3. Regras de Negócio e Padronizações Globais
+3.1. Regras de Negócio (RN)
+[RN-01] Antecedência de Agendamento: O cliente só pode realizar um agendamento autônomo pelo sistema se faltar mais de 3 horas para o horário desejado.
+[RN-02] Antecedência de Cancelamento: O cliente só pode cancelar um agendamento de forma autônoma se faltar mais de 2 horas para o atendimento. Não há cobrança de multa por cancelamento.
+[RN-03] Concorrência e Disponibilidade: O sistema não permite agendamentos simultâneos ou overbooking para o mesmo profissional.
+[RN-04] Atribuição de Profissionais: A busca cruza as categorias de serviços marcadas no perfil do funcionário com a categoria do serviço desejado pelo cliente. Em caso de empate (dois ou mais profissionais disponíveis no mesmo horário), a atribuição será feita por ordem alfabética do nome do profissional.
+[RN-05] Auditoria de Ações: Toda mudança de status de agendamento gera um log na tabela de auditoria contendo: ID do registro, ID do agendamento, novo status, data da alteração, ID e Nome do responsável pela ação.
+[RN-06] Cálculo da Taxa de No-Show: Calculada pela fórmula (Total de Agendamentos com status AUSENTE / Total de Agendamentos com status REALIZADO + AUSENTE) * 100
+[RN-07] Status Inicial: Todo novo agendamento nasce obrigatoriamente com o status AGENDADO.
+[RN-08] Transição de Status (Cliente): O cliente só pode alterar os status de AGENDADO para CONFIRMADO ou CANCELADO, e de CONFIRMADO para CANCELADO.
+[RN-09] Transição de Status (Funcionário): O funcionário pode alterar para CONFIRMADO, CANCELADO, REALIZADO ou AUSENTE. Sendo que REALIZADO e AUSENTE só podem ser marcados após a data e horário do atendimento.
+[RN-10] Gatilho de Receita: Quando um agendamento tiver seu status alterado para REALIZADO, o sistema deve gerar automaticamente um registro de receita no módulo Financeiro.
+[RN-11] Padrão de Anonimização (LGPD): Ao excluir a conta, o sistema deve manter o ID e a role, substituindo o nome por "Anonimizado", o e-mail por "id@anonimizado.com" e o telefone por "00 00000-0000".
+[RN-12] Separação de Receita e Pagamento: A receita gerada automaticamente a partir de um agendamento com status REALIZADO não possui forma de pagamento atrelada em sua origem. As transações financeiras são tratadas de forma apartada na tabela de pagamentos , sendo responsabilidade exclusiva do ADMIN complementar o campo de forma de pagamento posteriormente.
+[RN-13] Filtro de Escala e Bloqueios: O sistema só deve considerar horários disponíveis se o profissional vinculado à categoria estiver dentro do seu horário de trabalho (ex: Terça a Sábado) e não possuir bloqueios de agenda (férias/feriados) para a data selecionada.
+[RN-14] Granularidade e Arredondamento de Slots: A grade de horários opera em blocos fixos de 30 minutos. Se a duração de um serviço não for um múltiplo exato de 30 (ex: 73 min), o sistema deve arredondar o bloqueio da agenda para o próximo múltiplo (ex: 90 min / 3 blocos), garantindo que o próximo agendamento não encavale.
+
+3.2. Regras de Interface (RI)
+[RI-01] Renderização Dinâmica de Slots: Ao selecionar uma data, a grade de horários do cliente deve ocultar automaticamente todos os horários que estejam dentro da janela de 3 horas de antecedência [RN-01]; estejam fora da jornada do profissional ou em dias de bloqueio [RN-13] e já possuam agendamentos confirmados/agendados [RN-03]
+[RI-02] Máscaras de Entrada de Dados: Os campos de Telefone e Valores Financeiros devem aplicar as máscaras de formatação [PD-04] e [PD-02] em tempo real enquanto o usuário digita, impedindo a inserção de caracteres inválidos (letras em campos numéricos, por exemplo).
+[RI-03] Navegação Condicional por Role: O menu lateral (ou superior) deve renderizar apenas os módulos permitidos para a role do usuário logado. No caso da usuária Ellen (ADMIN + FUNCIONÁRIO), a interface deve exibir ambos os acessos simultaneamente.
+[RI-04] Diálogo de Confirmação Crítica (LGPD): Antes de processar a anonimização dos dados [RN-11], o sistema deve obrigatoriamente abrir um pop-up (modal) de confirmação, impedindo cliques acidentais em uma ação irreversível.
+[RI-05] Feedback de Erro em Formulários: Erros de validação (como e-mail duplicado ou senha fraca) devem aparecer logo abaixo do respectivo campo ou em um brinde (toast) no topo da tela, utilizando as mensagens padronizadas ([MSG-02], [MSG-04] etc.).
+[RI-06] Redirecionamento de Fluxo: Na [MSG-02] (E-mail duplicado), a interface deve fornecer um link clicável que leve o usuário diretamente para a tela de Login, facilitando a jornada dele.
+[RI-07] Acessibilidade Web (WCAG): Uso de HTML semântico, alto contraste, navegação via teclado (Tab), e atributos aria-label/alt.
+[RI-08] Paginação de Listas: Todas as tabelas do painel de Administração (Clientes, Funcionários, Agendamentos e Financeiro) devem carregar um limite fixo de 50 itens por página.
+[RI-09] Validação de Senha Dupla: Nos formulários de criação de conta e alteração de senha, a interface deve exigir o preenchimento de um campo de "Confirmação de Senha". O formulário só poderá ser enviado (botão habilitado) se os valores de ambos os campos coincidirem exatamente.
+
+3.3. Padronizações de Dados (PD)
+[PD-01] Datas e Horários: Datas seguirão o padrão DD/MM/AAAA e horários o formato 24h (HH:MM).
+[PD-02] Valores Financeiros: Exibição padrão em R$ 00,00.
+[PD-03] Limite de Caracteres: Campo "Nome" com limite máximo de 255 caracteres no banco de dados.
+[PD-04] Máscara de Telefone: Formatação visual e validação obrigatória no padrão (XX) XXXXX-XXXX.
+[PD-05] Validação de E-mail: Verificação obrigatória de formato válido via Regex (ex: nome@dominio.com).
+[PD-06] Força de Senha: Mínimo de 8 caracteres, exigindo combinação de letras e números, com pelo menos uma letra maiúscula.
+[PD-07] Formas de Pagamento: Os valores aceitos para o campo forma de pagamento são exclusivamente: Dinheiro, Pix, Débito e Crédito.
+
+3.4. Mensagens e Alertas Padrão (MSG)
+[MSG-01] Erro de Login: "E-mail ou senha inválidos. Tente novamente."
+[MSG-02] E-mail Duplicado: "Este e-mail já está cadastrado em nosso sistema. Clique aqui para realizar o login." (com link redirecionando para a página de login).
+[MSG-03] Concorrência de Horário: "Este horário acabou de ser reservado por outra pessoa. Por favor, escolha outro."
+[MSG-04] Senha Fraca: "A senha deve conter no mínimo 8 caracteres, incluindo letras, números e pelo menos uma letra maiúscula."
+[MSG-05] Agendamento Curto Prazo (< 3 horas): "Agendamento para as próximas 3 horas? Gentileza ligar para (11) 98765-4321 e confirmar a disponibilidade."
+[MSG-06] Cancelamento Tardio (< 2 horas): "Este cancelamento precisa ser realizado por telefone. Gentileza ligar para (11) 98765-4321."
+[MSG-07] Data sem Disponibilidade: "Não há horários disponíveis para esta data. Por favor, selecione outro dia."
+[MSG-08] Senhas Incompatíveis: "As senhas informadas não coincidem. Verifique e tente novamente." (Deve aparecer em tempo real, em vermelho, logo abaixo do campo "Confirmar Senha").
+[MSG-09] Sucesso Geral: "Operação realizada com sucesso!" (Mensagem coringa para o Admin usar ao salvar um serviço, editar um perfil, mudar um status etc.).
+[MSG-10] Cadastro Concluído: "Conta criada com sucesso! Faça seu login para continuar."
+[MSG-11] Agendamento Realizado: "Seu agendamento foi realizado com sucesso!"
+
+4. Escopo Funcional (Épicos e Histórias de Usuário)
+Épico 1: Acesso e Autenticação (Rotas Públicas / Home)
+
+[US-01] Cadastro de Cliente: Como visitante, eu quero criar uma conta informando meus dados e aceitando o termo de LGPD, para que eu me torne um Cliente do estúdio.
+Critérios de Aceite: 
+1.	O sistema deve validar o formato de e-mail [PD-05], aplicar máscara de telefone em tempo real [RI-02, PD-04] e validar a força da senha [PD-06]. 
+2.	O sistema deve exigir a confirmação de senha [RI-09] e barrar divergências com a [MSG-08]. 
+3.	E-mails duplicados devem ser barrados com a [MSG-02] e feedback visual [RI-05]. 
+4.	Todos os campos são obrigatórios. 
+5.	Em caso de sucesso no cadastro, exibir a [MSG-10] e redirecionar para a tela de login.
+
+[US-02] Autenticação no Sistema: Como Usuário (Cliente, Funcionário ou Admin), eu quero fazer login com meu e-mail e senha, para que eu possa acessar a área correspondente ao meu perfil.
+Critérios de Aceite: 
+1.	O sistema deve validar as credenciais e direcionar o usuário para o módulo correto, renderizando o menu de forma condicional de acordo com a sua role [RI-03]. 
+2.	Exibir [MSG-01] em caso de erro. 
+3.	O acesso bem-sucedido gera um token de sessão sujeito ao controle de timeout definido em [RNF-08].
+
+Épico 2: Área do Cliente (Autogestão e Agendamento)
+[US-03] Novo Agendamento: Como Cliente, eu quero visualizar os horários disponíveis para uma data selecionada, para que eu possa reservar meu atendimento.
+Critérios de Aceite: 
+1.	O sistema deve atribuir o profissional conforme a [RN-04] e filtrar a grade de horários seguindo a [RI-01] e a regra de granularidade/arredondamento [RN-14]. 
+2.	Se não houver nenhum horário disponível, a lista deve retornar vazia e exibir a [MSG-07]. 
+3.	Ao concluir a reserva com sucesso, o agendamento deve nascer com o status inicial obrigatório [RN-07], o sistema deve exibir a [MSG-11] e redirecionar o cliente para sua lista de agendamentos.
+
+[US-04] Meus Agendamentos: Como Cliente, eu quero visualizar a lista dos meus agendamentos e poder alterar o status, para que eu possa gerenciar minha rotina.
+Critérios de Aceite: 
+1.	Deve permitir filtros por data e status. 
+2.	As transições de status devem respeitar estritamente a [RN-08]. 
+3.	Cancelamentos com menos de 2 horas de antecedência devem ser bloqueados exibindo a [MSG-06]. 
+4.	Qualquer alteração de status deve registrar automaticamente um log de auditoria [RN-05]. 
+5.	Em caso de sucesso na alteração, exibir a [MSG-09].
+
+[US-05] Gestão de Perfil e LGPD: Como Cliente, eu quero poder editar meus dados pessoais, senha, ou excluir minha conta definitivamente, para que eu mantenha minhas informações atualizadas ou exerça meu direito de privacidade.
+Critérios de Aceite: 
+1.	Para edição de dados, deve aplicar as mesmas regras de validação do cadastro ([PD-04], [PD-05], [PD-06], [RI-09]). 
+2.	A exclusão de conta deve obrigatoriamente acionar o diálogo de confirmação crítica [RI-04] antes de aplicar o Padrão de Anonimização [RN-11], mantendo o ID. 
+3.	Ao salvar edições com sucesso, exibir a [MSG-09].
+
+Épico 3: Área do Funcionário (Gestão de Agenda de Trabalho)
+
+[US-06] Visualização do Calendário: Como Funcionário, eu quero visualizar minha agenda semanal/mensal listando cliente, serviço, horário e status, para que eu saiba quais serão meus atendimentos.
+Critérios de Aceite: 
+1.	A visualização deve seguir o estilo de agenda corporativa e mostrar apenas os agendamentos vinculados ao ID do funcionário logado.
+
+[US-07] Gestão de Status de Atendimento: Como Funcionário, eu quero atualizar o status do agendamento (Confirmado, Cancelado, Realizado ou Ausente), para que o estúdio tenha o controle real da operação.
+Critérios de Aceite: 
+1.	As transições de status permitidas devem respeitar estritamente a [RN-09]. 
+2.	Os status "REALIZADO" e "AUSENTE" sofrem bloqueio temporal, só podendo ser marcados após o horário do atendimento [RN-09]. 
+3.	Ao alterar para "REALIZADO", o sistema deve disparar o gatilho financeiro [RN-10]. 
+4.	Toda alteração deve gerar log de auditoria [RN-05] e exibir feedback de sucesso [MSG-09].
+
+[US-08] Gestão de Perfil: Como Funcionário, eu quero atualizar meus dados pessoais e minha senha, para que eu não dependa do administrador para ações básicas de segurança.
+Critérios de Aceite: 
+1.	Deve permitir a edição de dados aplicando as validações de telefone [PD-04] e e-mail [PD-05]. 
+2.	A alteração de senha deve respeitar a força mínima [PD-06], exigir confirmação dupla [RI-09] e validar divergências em tempo real com a [MSG-08]. 
+3.	Ao salvar com sucesso, exibir a [MSG-09].
+
+Épico 4: Módulo Administração (Gestão Operacional)
+
+[US-09] Gestão de Serviços e Categorias: Como Admin, eu quero criar, editar e inativar Categorias e Serviços (definindo nome, duração e valor), para que os clientes tenham as opções corretas na hora de agendar.
+Critérios de Aceite: 
+1.	A lista de serviços deve respeitar a paginação [RI-08]. 
+2.	Apenas serviços "Ativos" podem aparecer para o cliente na tela de Novo Agendamento. 
+3.	Ao salvar, exibir a [MSG-09].
+
+[US-10] Gestão de Funcionários: Como Admin, eu quero acessar a lista de funcionários, com botões para cadastrar novos colaboradores e editar todos os dados dos perfis existentes (incluindo alteração manual de senha), para gerenciar a equipe e auxiliar na recuperação de acessos.
+Critérios de Aceite: 
+1.	A lista deve respeitar a paginação [RI-08] e permitir filtrar por nome, telefone, e-mail e data de cadastro. 
+2.	O cadastro e edição devem seguir as validações globais de dados ([PD-04], [PD-05], [PD-06], [RI-09]). 
+3.	O sistema deve permitir ativar/inativar o funcionário, definir horários e bloquear datas [RN-13], além de vincular as categorias de serviços que eles atendem via checkbox. 
+4.	Ao salvar com sucesso, exibir a [MSG-09].
+
+[US-11] Gestão de Clientes: Como Admin, eu quero acessar a lista de clientes, com botões para cadastrar novos usuários e editar todos os dados dos perfis existentes (incluindo alteração manual de senha), para auxiliar clientes com dificuldades de cadastro ou perda de acesso.
+Critérios de Aceite: 
+1.	A lista deve respeitar a paginação [RI-08] e permitir filtrar por nome, telefone, e-mail e data de cadastro. 
+2.	O cadastro e a edição manual realizados pelo Admin devem seguir estritamente as validações globais de dados ([PD-04], [PD-05], [PD-06], [RI-09]). 
+3.	Ao concluir o cadastro ou salvar as alterações com sucesso, o sistema deve exibir a [MSG-09].
+
+[US-12] Visão Global de Agendamentos: Como Admin, eu quero acessar a grade completa de todos os agendamentos do estúdio, para que eu tenha controle total da operação.
+Critérios de Aceite: 
+1.	A tabela deve carregar a lista de agendamentos respeitando o limite de paginação [RI-08], garantindo a performance da tela e do banco de dados. 
+2.	O sistema deve exibir os campos de filtro permitindo buscas combinadas por: serviços, categoria, data, clientes, profissionais e status. 
+3.	Caso o Admin realize alterações de status por esta tela, as regras de auditoria [RN-05] e gatilho financeiro [RN-10] devem ser respeitadas, exibindo a [MSG-09] em caso de sucesso.
+
+[US-13] Dashboard Operacional: Como Admin, eu quero visualizar um painel com total de atendimentos, cancelamentos, ausências, serviços mais realizados, serviços com maior duração e dias/horários de maior demanda, para que eu possa tomar decisões baseadas em dados.
+
+[US-14] Gestão do Próprio Perfil: Como Admin, eu quero acessar a área do meu perfil para editar meus próprios dados pessoais e senha, mantendo minhas credenciais atualizadas de forma autônoma.
+Critérios de Aceite: 
+1.	Deve permitir a edição de dados aplicando as validações de formato globais ([PD-04], [PD-05]). 
+2.	A alteração de senha deve respeitar a força mínima [PD-06], exigir confirmação dupla [RI-09] e barrar divergências com a [MSG-08]. 
+3.	Ao salvar, exibir a [MSG-09].
+
+Épico 5: Módulo Financeiro (Gestão de Receitas)
+
+[US-15] Gestão de Receitas e Pagamentos: Como Admin, eu quero visualizar as receitas geradas e complementar a "Forma de Pagamento", para que o caixa do estúdio fique conciliado.
+Critérios de Aceite: 
+1.	A receita nasce apartada (sem pagamento vinculado) [RN-12] a partir do gatilho [RN-10]. 
+2.	O Admin deve complementar a transação usando estritamente as formas permitidas [PD-07]. 
+3.	A lista do painel deve respeitar a paginação [RI-08] e permitir os filtros receitas por categoria, data e forma de pagamento. 
+4.	Ao salvar o pagamento, exibir a [MSG-09].
+
+[US-16] Dashboard Financeiro: Como Admin, eu quero visualizar um painel com receita por período, receita por forma de pagamento, ticket médio, receita por serviço e taxa de no-show, para que eu possa acompanhar a saúde financeira do estúdio.
+Critérios de Aceite: 
+1.	A taxa de no-show deve ser calculada utilizando a fórmula definida na [RN-06].
+
+5. Requisitos Técnicos, Não-Funcionais e Fora de Escopo
+Esta etapa define a infraestrutura, os padrões de qualidade e os limites do que será entregue nesta primeira versão (MVP), garantindo o atendimento às exigências técnicas do projeto.
+5.1. Arquitetura e Stack Tecnológica (Requisitos Técnicos - RT)
+[RT-01] Front-end: Desenvolvimento utilizando o framework Angular (TypeScript, HTML, CSS/SCSS).
+[RT-02] Back-end e Fornecimento de API: Desenvolvimento em Python utilizando o framework Flask, construindo uma API RESTful para comunicação exclusiva e desacoplada com o front-end.
+[RT-03] Banco de Dados: Utilização de banco de dados relacional PostgreSQL, hospedado na plataforma de nuvem Neon.
+[RT-04] Nuvem e Hospedagem (Deploy): Tanto o front-end (Angular) quanto o back-end (Flask) serão hospedados na plataforma Vercel a princípio, podendo ser migrados para AWS.
+[RT-05] Análise de Dados: O sistema deve cruzar dados operacionais e financeiros do banco de dados para alimentar os Dashboards nativos do módulo Administração (atendendo à exigência de Análise de Dados do escopo técnico).
+[RT-06] Fuso Horário (Timezone): O back-end e o banco de dados devem ser rigidamente configurados para operar no fuso horário de Brasília (UTC-3), garantindo a precisão dos cálculos de disponibilidade e bloqueios.
+
+5.2. DevOps, Qualidade e Segurança (Requisitos Não-Funcionais - RNF)
+[RNF-01] Controle de Versão: Uso obrigatório do GitHub para gestão do código-fonte e histórico do projeto.
+[RNF-02] CI/CD (Integração e Entrega Contínuas): Implementação de esteiras automatizadas via GitHub Actions para testes e deploy na Vercel.
+[RNF-03] Cobertura de Testes: O projeto deve incluir a elaboração de testes (unitários e/ou de integração) para validar as regras de negócio críticas e as rotas da API.
+[RNF-04] Segurança e Autenticação: As senhas devem ser obrigatoriamente criptografadas no banco de dados (hashing) e as rotas da API devem ser protegidas por tokens de autenticação (JWT).
+[RNF-05] Responsividade (Mobile-First): A interface deve se adaptar perfeitamente a dispositivos móveis, garantindo que o cliente consiga agendar pelo celular com a mesma facilidade do desktop.
+[RNF-06] Performance: O sistema e as consultas da API devem ser otimizados para garantir um carregamento fluido da grade de horários e dos dashboards.
+[RNF-07] Acessibilidade Web (WCAG): O front-end deve seguir diretrizes de acessibilidade (conforme detalhado na [RI-07]), garantindo contraste, navegação por teclado e semântica adequada.
+[RNF-08] Controle de Sessão (Timeout): O token de autenticação gerado no login deve ter um tempo de expiração rígido de 30 minutos. Após esse período, a sessão do usuário deve ser invalidada automaticamente pelo back-end e o front-end deve redirecioná-lo para a tela de login.
+
+5.3. Fora de Escopo (Melhorias Futuras / Backlog)
+Para garantir a entrega com qualidade e dentro do prazo, os seguintes itens não farão parte desta versão:
+•	Uso de IoT: Atendendo aos critérios de escolha do projeto, optou-se por focar em API e Análise de Dados, descartando implementações de Internet das Coisas.
+•	Recuperação Automática de Senha: A função "Esqueci minha senha" via disparo de e-mail não será implementada. A alteração de senhas perdidas será feita manualmente pelo Admin.
+•	Notificações Automáticas: Envio de lembretes automáticos de agendamento por WhatsApp, SMS ou E-mail.
+•	Módulo de Despesas: Gestão de saídas financeiras (contas fixas, contas variáveis, pagamento de comissões/salários) e cálculo automático de Lucro Líquido.
+•	Exportação de Relatórios: Funcionalidade para extrair e fazer o download dos dados gerados nos Dashboards (em formatos como PDF, Excel ou CSV).

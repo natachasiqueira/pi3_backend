@@ -1,0 +1,107 @@
+Sistema de Agendamento e Gestão de Serviços
+
+Sistema para agendamento de serviços de estúdio de beleza com gestão financeira integrada (Livro Caixa). Administradores definem horários de trabalho e bloqueios; clientes solicitam agendamentos de serviços únicos baseados em disponibilidade real de agenda; agendamentos finalizados disparam receitas pendentes que são posteriormente liquidadas pelo administrador; o sistema financeiro é escalável para receber despesas futuras; toda mudança de status dos agendamentos é rigidamente auditada com rastreabilidade de usuário. O sistema é estruturado de forma normalizada para suportar múltiplos profissionais operando simultaneamente.
+
+Tabelas
+
+USUARIOS
+id: Integer (PK)
+nome_completo: Varchar(255) NOT NULL
+telefone: Varchar(15) NOT NULL
+email: Varchar(100) NOT NULL UNIQUE
+senha: Varchar(100) NOT NULL
+role: Varchar(20) NOT NULL
+data_criacao: Timestamp DEFAULT NOW()
+
+FUNCIONARIOS
+id: Integer (PK)
+id_usuario: Integer (FK → USUARIOS.id) NOT NULL UNIQUE
+ativo: Boolean DEFAULT TRUE
+
+CATEGORIAS_FUNCIONARIOS
+id_funcionario: Integer (PK, FK → FUNCIONARIOS.id)
+id_categoria: Integer (PK, FK → CATEGORIAS_SERVICOS.id)
+
+HORARIOS_TRABALHO
+id: Integer (PK)
+id_funcionario: Integer (FK → FUNCIONARIOS.id) NOT NULL
+dia_semana: Integer NOT NULL
+hora_inicio: Time NOT NULL
+hora_fim: Time NOT NULL
+
+BLOQUEIOS_AGENDA
+id: Integer (PK)
+id_funcionario: Integer (FK → FUNCIONARIOS.id) NOT NULL
+data_bloqueio: Date NOT NULL
+motivo: Varchar(255)
+
+SERVICOS
+id: Integer (PK)
+id_categoria: Integer (FK → CATEGORIAS_SERVICOS.id) NOT NULL
+nome_servico: Varchar(255) NOT NULL
+duracao_minutos: Integer NOT NULL
+valor: Decimal(10,2) NOT NULL
+ativo: Boolean DEFAULT TRUE
+
+CATEGORIAS_SERVICOS
+id: Integer (PK)
+nome_categoria: Varchar(100) NOT NULL UNIQUE
+
+AGENDAMENTOS
+id: Integer (PK)
+id_cliente: Integer (FK → USUARIOS.id) NOT NULL
+id_funcionario: Integer (FK → FUNCIONARIOS.id) NOT NULL
+id_servico: Integer (FK → SERVICOS.id) NOT NULL
+data_atendimento: Date NOT NULL
+hora_inicio: Time NOT NULL
+hora_fim: Time NOT NULL
+valor_aplicado: Decimal(10,2) NOT NULL
+status: Varchar(20) NOT NULL DEFAULT ‘AGENDADO’
+data_criacao: Timestamp DEFAULT NOW()
+data_atualizacao: Timestamp DEFAULT NOW()
+
+CATEGORIAS_FINANCEIRAS
+id: Integer (PK)
+nome_categoria: Varchar(100) NOT NULL UNIQUE
+tipo_movimentacao: Varchar(20) NOT NULL (RECEITA OU DESPESA)
+
+LANCAMENTOS_FINANCEIROS
+id: Integer (PK)
+id_categoria_financeira: Integer (FK → CATEGORIAS_FINANCEIRAS.id) NOT NULL
+id_agendamento: Integer (FK → AGENDAMENTOS.id) NULL
+nome_lancamento: Varchar(255) NOT NULL
+valor: Decimal(10,2) NOT NULL
+forma_pagamento: Varchar(50) NULL
+status_pagamento: Varchar(20) NOT NULL DEFAULT ‘PENDENTE’
+data_pagamento: Timestamp NULL
+data_criacao: Timestamp DEFAULT NOW()
+
+LOGS_AUDITORIA
+id: Integer (PK)
+id_agendamento: Integer (FK → AGENDAMENTOS.id) NOT NULL
+status_anterior: Varchar(20) NULL
+status_novo: Varchar(20) NOT NULL
+data_alteracao: Timestamp DEFAULT NOW()
+id_responsavel: Integer (FK → USUARIOS.id) NOT NULL
+nome_responsavel: Varchar(255) NOT NULL 
+
+
+
+
+Relacionamentos e Regras
+
+•	Identidade e Histórico (1:1 e Soft Delete): Todo FUNCIONARIO é obrigatoriamente vinculado a um USUARIO. Para preservar o histórico financeiro e de auditoria, funcionários não são deletados, mas sim inativados via exclusão lógica (campo ativo em Boolean).
+•	Atribuição Operacional (1:N): Administradores definem a disponibilidade de atendimento vinculando múltiplos HORARIOS_TRABALHO (usando dias da semana como números inteiros para ordenação nativa) e múltiplos BLOQUEIOS_AGENDA ao funcionário.
+•	Especialidades (N:N): A capacidade de um profissional realizar um serviço é definida pela tabela associativa (ponte) FUNCIONARIOS_CATEGORIAS. Ela utiliza uma Chave Primária Composta para permitir o livre trânsito entre funcionários e categorias, garantindo simultaneamente que a mesma atribuição não seja duplicada por engano.
+•	Agendamentos e Preço Congelado: Clientes criam AGENDAMENTOS contendo um único serviço por vez. O sistema realiza um snapshot (cópia) do valor do serviço no momento exato do agendamento, blindando o histórico financeiro do cliente contra reajustes futuros na tabela de preços padrão.
+•	Gatilho Financeiro e Livro Caixa: A tabela LANCAMENTOS_FINANCEIROS opera como um Livro Caixa unificado. Lançamentos gerados a partir de agendamentos mantêm o vínculo com a origem (id_agendamento), enquanto despesas ou receitas manuais deixam esse vínculo livre (NULL). O sistema herda a regra de soma ou subtração (Receita/Despesa) diretamente da CATEGORIAS_FINANCEIRAS, eliminando redundâncias de dados na API.
+•	Auditoria Contínua: Toda criação ou transição de status de um AGENDAMENTO insere um registro imutável em LOGS_AUDITORIA. O primeiro log funciona como a "certidão de nascimento" (com status_anterior livre/nulo), e os subsequentes garantem a rastreabilidade total de quem e quando alterou os dados, atendendo às normas de conformidade e LGPD.
+
+Capacidades Funcionais
+
+•	Gestão de Perfis Unificada: Controle de acesso com hierarquias (Cliente, Funcionário, Admin) e anonimização de dados (LGPD), garantindo a integridade relacional através da inativação de contas (Soft Delete).
+•	Motor de Disponibilidade Inteligente: Renderização de horários de agenda baseada no cruzamento matemático de jornadas fixas (dias da semana), concorrência temporal, antecedência mínima e bloqueios dinâmicos (férias/ausências).
+•	Catálogo Dinâmico de Serviços: Cadastro de serviços categorizados com atribuição flexível a múltiplos profissionais, suportada por arquitetura de matriz (Muitos-para-Muitos).
+•	Controle de Agendamentos Imutável: Sistema de marcação segura que guarda o retrato financeiro do momento da compra, permitindo aplicação de descontos individuais e reajustes na tabela base sem corromper o histórico do estúdio.
+•	Gestão Financeira Escalável: Sistema de Livro Caixa pronto para crescer. Suporta a criação ilimitada de categorias gerenciais customizadas (como "Contas de Luz", "Vendas", "Serviços"), preparadas para alimentar futuros relatórios e dashboards de Lucro Líquido através de consultas limpas via API.
+•	Trilhas de Auditoria Completas: Acompanhamento do ciclo de vida dos agendamentos (Criação, Confirmação, Cancelamento, Realização ou Ausência) com registro absoluto do usuário responsável por cada ação desde o "milissegundo zero".
