@@ -67,7 +67,7 @@ pi3_backend/
 
 6.  **Executar a API:**
     ```bash
-    python app.py
+    python run.py
     ```
 
 ## 📖 Documentação da API (Swagger)
