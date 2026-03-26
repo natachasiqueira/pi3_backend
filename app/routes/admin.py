@@ -1,8 +1,8 @@
 from flask import request, jsonify
 from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt
-from run.models import db, CategoriaServico, Servico, Funcionario, Usuario, HorarioTrabalho, BloqueioAgenda, Agendamento
-from run.schemas import CategoriaServicoSchema, ServicoSchema, FuncionarioSchema, HorarioTrabalhoSchema, BloqueioAgendaSchema, UsuarioSchema, UpdatePerfilSchema
+from app.models import db, CategoriaServico, Servico, Funcionario, Usuario, HorarioTrabalho, BloqueioAgenda, Agendamento
+from app.schemas import CategoriaServicoSchema, ServicoSchema, FuncionarioSchema, HorarioTrabalhoSchema, BloqueioAgendaSchema, UsuarioSchema, UpdatePerfilSchema
 from marshmallow import ValidationError
 from functools import wraps
 

@@ -1,8 +1,8 @@
 from flask import request, jsonify
 from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt
-from run.models import db, LancamentoFinanceiro, LogAuditoria, Agendamento, CategoriaFinanceira, Servico, Funcionario, Usuario
-from run.schemas import LancamentoFinanceiroSchema, LogAuditoriaSchema
+from app.models import db, LancamentoFinanceiro, LogAuditoria, Agendamento, CategoriaFinanceira, Servico, Funcionario, Usuario
+from app.schemas import LancamentoFinanceiroSchema, LogAuditoriaSchema
 from marshmallow import ValidationError
 from datetime import datetime
 from sqlalchemy import func
