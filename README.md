@@ -26,7 +26,7 @@ pi3_backend/
 │   ├── schemas.py              # Esquemas de validação (Marshmallow)
 │   └── __init__.py             # Configuração da Factory e Extensões
 ├── venv/                       # Ambiente virtual (recomendado)
-├── app.py                      # Ponto de entrada para o servidor
+├── run.py                      # Ponto de entrada para o servidor
 ├── requirements.txt            # Dependências do sistema
 ├── seed.py                     # Script para inicializar dados básicos (Ellen Patrício)
 └── vercel.json                 # Configuração para deploy na Vercel
@@ -67,7 +67,7 @@ pi3_backend/
 
 6.  **Executar a API:**
     ```bash
-    python app.py
+    python run.py
     ```
 
 ## 📖 Documentação da API (Swagger)

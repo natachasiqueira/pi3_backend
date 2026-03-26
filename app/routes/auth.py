@@ -5,8 +5,8 @@ from flask_jwt_extended import (
     get_jwt
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.models import Usuario, db
-from app.schemas import UsuarioSchema, LoginSchema, UpdatePerfilSchema
+from run.models import Usuario, db
+from run.schemas import UsuarioSchema, LoginSchema, UpdatePerfilSchema
 from marshmallow import ValidationError
 from datetime import timedelta
 

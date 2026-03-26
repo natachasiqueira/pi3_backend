@@ -1,9 +1,9 @@
 from flask import request, jsonify
 from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from app.models import db, Agendamento, Servico, Funcionario, HorarioTrabalho, BloqueioAgenda, Usuario, LogAuditoria
-from app.schemas import AgendamentoSchema
-from app.models import CategoriaFinanceira, LancamentoFinanceiro
+from run.models import db, Agendamento, Servico, Funcionario, HorarioTrabalho, BloqueioAgenda, Usuario, LogAuditoria
+from run.schemas import AgendamentoSchema
+from run.models import CategoriaFinanceira, LancamentoFinanceiro
 from marshmallow import ValidationError
 from datetime import datetime, timedelta, time, date
 import os
@@ -327,7 +327,7 @@ def mudar_status(id):
 
     # [RN-10] Gatilho de Receita
     if novo_status == 'REALIZADO':
-        from app.models import CategoriaFinanceira, LancamentoFinanceiro
+        from run.models import CategoriaFinanceira, LancamentoFinanceiro
         cat_receita = CategoriaFinanceira.query.filter_by(nome_categoria='Serviços Realizados').first()
         if cat_receita:
             lancamento = LancamentoFinanceiro(

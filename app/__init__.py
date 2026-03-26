@@ -37,10 +37,10 @@ def create_app():
     api = Api(app)
 
     # Registro de Blueprints via Smorest API
-    from app.routes.auth import auth_bp
-    from app.routes.admin import admin_bp
-    from app.routes.agendamentos import agendamentos_bp
-    from app.routes.financeiro import financeiro_bp
+    from run.routes.auth import auth_bp
+    from run.routes.admin import admin_bp
+    from run.routes.agendamentos import agendamentos_bp
+    from run.routes.financeiro import financeiro_bp
     
     api.register_blueprint(auth_bp)
     api.register_blueprint(admin_bp)
@@ -48,7 +48,7 @@ def create_app():
     api.register_blueprint(financeiro_bp)
 
     # Importação dos models para o Migrate
-    from app.models import (
+    from run.models import (
         Usuario, Funcionario, CategoriaServico, Servico, 
         HorarioTrabalho, BloqueioAgenda, Agendamento, 
         CategoriaFinanceira, LancamentoFinanceiro, LogAuditoria
