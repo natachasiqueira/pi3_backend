@@ -21,7 +21,7 @@ class Usuario(db.Model):
     email = db.Column(db.String(100), nullable=False, unique=True)
     senha = db.Column(db.String(255), nullable=False) # Aumentado para hash de senha
     role = db.Column(db.String(50), nullable=False) # Suporta múltiplas roles [PRD]
-    criado_em = db.Column(db.DateTime, default=get_now)
+    data_criacao = db.Column(db.DateTime, default=get_now)
 
     @property
     def roles_list(self):

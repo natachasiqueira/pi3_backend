@@ -9,7 +9,7 @@ class UsuarioSchema(Schema):
     senha = fields.Str(required=True, load_only=True)
     confirmar_senha = fields.Str(required=True, load_only=True) # [RI-09]
     role = fields.Str(dump_only=True)
-    criado_em = fields.DateTime(dump_only=True)
+    data_criacao = fields.DateTime(dump_only=True)
 
     @validates('telefone')
     def validate_telefone(self, value):
