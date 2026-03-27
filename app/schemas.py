@@ -108,18 +108,18 @@ class AgendamentoSchema(Schema):
     nome_servico = fields.Str(dump_only=True)
     duracao_minutos = fields.Int(dump_only=True)
 
-def get_valor_formatado(self, obj):
-        # Pega o valor dependendo do schema (valor_aplicado ou valor)
-        valor_original = getattr(obj, 'valor_aplicado', getattr(obj, 'valor', 0))
-        
-        # 1. Formata no padrão americano (ex: 1,500.00)
-        valor_us = f"{valor_original:,.2f}"
-        
-        # 2. Faz a mudança dos caracteres para o padrão BR
-        valor_br = valor_us.replace(',', 'X').replace('.', ',').replace('X', '.')
-        
-        # [PD-02] Valores Financeiros: R$ 00,00
-        return f"R$ {valor_br}"
+    def get_valor_formatado(self, obj):
+                # Pega o valor dependendo do schema (valor_aplicado ou valor)
+                valor_original = getattr(obj, 'valor_aplicado', getattr(obj, 'valor', 0))
+                
+                # 1. Formata no padrão americano (ex: 1,500.00)
+                valor_us = f"{valor_original:,.2f}"
+                
+                # 2. Faz a mudança dos caracteres para o padrão BR
+                valor_br = valor_us.replace(',', 'X').replace('.', ',').replace('X', '.')
+                
+                # [PD-02] Valores Financeiros: R$ 00,00
+                return f"R$ {valor_br}"
 
 class LancamentoFinanceiroSchema(Schema):
     id = fields.Int(dump_only=True)
