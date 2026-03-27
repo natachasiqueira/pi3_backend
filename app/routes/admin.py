@@ -291,7 +291,7 @@ def editar_funcionario_admin(id):
     funcionario = Funcionario.query.get_or_404(id)
     usuario = funcionario.usuario
     
-    schema = UpdatePerfilSchema(partial=True)
+    schema = UpdatePerfilSchema(partial=True, unknown='exclude')
     try:
         data = schema.load(request.json)
     except ValidationError as err:
