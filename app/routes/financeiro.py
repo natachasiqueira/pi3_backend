@@ -15,7 +15,7 @@ def get_now():
     tz = pytz.timezone(os.environ.get('TIMEZONE', 'America/Sao_Paulo'))
     return datetime.now(tz)
 
-# --- GESTÃO FINANCEIRA [US-15] ---
+# GESTÃO FINANCEIRA [US-15]
 
 @financeiro_bp.route('/lancamentos', methods=['GET'])
 @jwt_required()
@@ -25,7 +25,7 @@ def listar_lancamentos():
     if "ADMIN" not in roles:
         return jsonify({"message": "Acesso restrito a administradores."}), 403
 
-    # RI-08: Paginação de 50 itens
+    # Paginação de 50 itens [RI-08]
     page = request.args.get('page', 1, type=int)
     per_page = 50
     
@@ -83,7 +83,7 @@ def conciliar_pagamento(id):
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
 
-# --- DASHBOARDS [US-13, US-16] ---
+# DASHBOARDS [US-13, US-16]
 
 @financeiro_bp.route('/dashboard/operacional', methods=['GET'])
 @jwt_required()
@@ -131,7 +131,7 @@ def dashboard_financeiro():
     if "ADMIN" not in roles:
         return jsonify({"message": "Acesso restrito a administradores."}), 403
 
-    # Filtro de período opcional [US-16]
+    # Filtro de período [US-16]
     data_inicio = request.args.get('data_inicio')
     data_fim = request.args.get('data_fim')
     
@@ -187,7 +187,7 @@ def dashboard_financeiro():
         "taxa_no_show": f"{taxa_no_show:.2f}%"
     }), 200
 
-# --- AUDITORIA ---
+# AUDITORIA
 
 @financeiro_bp.route('/auditoria/<int:id_agendamento>', methods=['GET'])
 @jwt_required()

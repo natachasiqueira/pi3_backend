@@ -19,7 +19,7 @@ class UsuarioSchema(Schema):
 
     @validates('senha')
     def validate_senha(self, value):
-        # Mínimo 8 caracteres, letras, números e uma maiúscula [PD-06] [MSG-04]
+        # Mínimo 8 caracteres, letras, números e uma letra maiúscula [PD-06] [MSG-04]
         if len(value) < 8 or not re.search(r'[A-Z]', value) or not re.search(r'[a-z]', value) or not re.search(r'\d', value):
             raise ValidationError("A senha deve conter no mínimo 8 caracteres, incluindo letras, números e pelo menos uma letra maiúscula.")
 
@@ -95,7 +95,7 @@ class FuncionarioSchema(UsuarioSchema):
 
 class AgendamentoSchema(Schema):
     id = fields.Int(dump_only=True)
-    id_cliente = fields.Int() # Removido dump_only para permitir que Admin envie
+    id_cliente = fields.Int() 
     id_funcionario = fields.Int(required=True)
     id_servico = fields.Int(required=True)
     data_atendimento = fields.Date(required=True, format='%d/%m/%Y') # [PD-01]
@@ -109,16 +109,13 @@ class AgendamentoSchema(Schema):
     duracao_minutos = fields.Int(dump_only=True)
 
     def get_valor_formatado(self, obj):
-                # Pega o valor dependendo do schema (valor_aplicado ou valor)
+                # 1. Pegar o valor
                 valor_original = getattr(obj, 'valor_aplicado', getattr(obj, 'valor', 0))
-                
-                # 1. Formata no padrão americano (ex: 1,500.00)
-                valor_us = f"{valor_original:,.2f}"
-                
-                # 2. Faz a mudança dos caracteres para o padrão BR
+                # 2. Formatar no padrão americano (ex: 1,500.00)
+                valor_us = f"{valor_original:,.2f}"      
+                # 3. Fazer a mudança dos caracteres para o padrão BR
                 valor_br = valor_us.replace(',', 'X').replace('.', ',').replace('X', '.')
-                
-                # [PD-02] Valores Financeiros: R$ 00,00
+                # 4. Obter os valores financeiros: R$ 00,00 [PD-02]
                 return f"R$ {valor_br}"
 
 class LancamentoFinanceiroSchema(Schema):
@@ -143,6 +140,3 @@ class LogAuditoriaSchema(Schema):
     data_alteracao = fields.DateTime(dump_only=True, format='%d/%m/%Y %H:%M') # [PD-01]
     id_responsavel = fields.Int(dump_only=True)
     nome_responsavel = fields.Str(dump_only=True)
-
-
-

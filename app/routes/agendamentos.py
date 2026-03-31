@@ -17,7 +17,7 @@ def get_now():
     return datetime.now(tz)
 
 def arredondar_duracao(duracao_minutos):
-    # [RN-14] Granularidade e Arredondamento de Slots de 30 minutos
+    # Granularidade e arredondamento de slots de 30 minutos [RN-14]
     return math.ceil(duracao_minutos / 30) * 30
 
 def time_to_minutes(t):
@@ -27,7 +27,7 @@ def minutes_to_time(m):
     return time(hour=m // 60, minute=m % 60)
 
 def is_slot_available(id_funcionario, data_atendimento, inicio_minutos, fim_minutos, id_agendamento=None):
-    # [RN-03] Concorrência e Disponibilidade (evitar overbooking)
+    # Concorrência e disponibilidade (evitar overbooking) [RN-03]
     conflitos = Agendamento.query.filter(
         Agendamento.id_funcionario == id_funcionario,
         Agendamento.data_atendimento == data_atendimento,
@@ -40,7 +40,7 @@ def is_slot_available(id_funcionario, data_atendimento, inicio_minutos, fim_minu
     for a in conflitos.all():
         a_inicio = time_to_minutes(a.hora_inicio)
         a_fim = time_to_minutes(a.hora_fim)
-        # Verifica sobreposição de horários
+        # Verificar sobreposição de horários
         if max(inicio_minutos, a_inicio) < min(fim_minutos, a_fim):
             return False
     return True
@@ -48,7 +48,7 @@ def is_slot_available(id_funcionario, data_atendimento, inicio_minutos, fim_minu
 @agendamentos_bp.route('/disponibilidade', methods=['GET'])
 @jwt_required()
 def listar_disponibilidade():
-    # [US-03] Visualizar horários disponíveis
+    # Visualizar horários disponíveis [US-03]
     id_servico = request.args.get('id_servico', type=int)
     data_str = request.args.get('data') # DD/MM/AAAA [PD-01]
     
@@ -64,7 +64,7 @@ def listar_disponibilidade():
     servico = Servico.query.get_or_404(id_servico)
     duracao_efetiva = arredondar_duracao(servico.duracao_minutos)
     
-    # [RN-04] Busca profissionais por categoria de serviço
+    # Buscar profissionais por categoria de serviço [RN-04]
     funcionarios = Funcionario.query.filter(
         Funcionario.ativo == True,
         Funcionario.categorias.any(id=servico.id_categoria)
@@ -77,7 +77,7 @@ def listar_disponibilidade():
     disponibilidade_final = []
 
     for func in funcionarios:
-        # [RN-13] Horário de trabalho e Bloqueios
+        # Horário de trabalho e bloqueio de datas [RN-13]
         dia_semana = data_consulta.weekday() # 0-6
         horarios_trabalho = HorarioTrabalho.query.filter_by(
             id_funcionario=func.id, dia_semana=dia_semana
@@ -99,19 +99,19 @@ def listar_disponibilidade():
                 hora_inicio = minutes_to_time(atual_minutos)
                 hora_fim = minutes_to_time(atual_minutos + duracao_efetiva)
                 
-                # [RN-01] Antecedência de 3 horas
+                # Antecedência de 3 horas [RN-01]
                 dt_inicio = datetime.combine(data_consulta, hora_inicio)
                 dt_inicio = pytz.timezone(os.environ.get('TIMEZONE', 'America/Sao_Paulo')).localize(dt_inicio)
                 
                 if dt_inicio > agora + timedelta(hours=3):
-                    # [RN-03] Overbooking
+                    # Overbooking (evitar sobreposição de horários) [RN-03]
                     if is_slot_available(func.id, data_consulta, atual_minutos, atual_minutos + duracao_efetiva):
                         slots_funcionario.append({
                             "hora_inicio": hora_inicio.strftime('%H:%M'), # [PD-01]
                             "hora_fim": hora_fim.strftime('%H:%M') # [PD-01]
                         })
                 
-                atual_minutos += 30 # Incremento fixo de 30 min conforme granularidade [RN-14]
+                atual_minutos += 30 # Incremento fixo de 30 min conforme [RN-14]
         
         if slots_funcionario:
             disponibilidade_final.append({
@@ -120,7 +120,7 @@ def listar_disponibilidade():
                 "slots": slots_funcionario
             })
 
-    # [RN-04] Ordenação por nome em caso de empate de horários
+    # Ordenação por nome em caso de empate de horários [RN-04]
     disponibilidade_final.sort(key=lambda x: x['nome_funcionario'])
 
     if not disponibilidade_final:
@@ -131,12 +131,11 @@ def listar_disponibilidade():
 @agendamentos_bp.route('', methods=['POST'])
 @jwt_required()
 def criar_agendamento():
-    # [US-03] Novo Agendamento
+    # Novo agendamento [US-03]
     claims = get_jwt()
     roles = claims.get("roles", [])
     
-    # Apenas CLIENTE tem exclusividade de realizar novos agendamentos autônomos.
-    # Admin também pode criar para qualquer cliente.
+    # Cliente e admin podem realizar novos agendamentos [US-03]
     if "CLIENTE" not in roles and "ADMIN" not in roles:
         return jsonify({"message": "Acesso negado."}), 403
 
@@ -146,7 +145,7 @@ def criar_agendamento():
     except ValidationError as err:
         return jsonify({"errors": err.messages}), 400
 
-    # Determinar id_cliente
+    # Determinar o id do cliente quando o agendamento for realizado pelo admin
     if "ADMIN" in roles:
         id_cliente = request.json.get('id_cliente')
         if not id_cliente:
@@ -169,15 +168,14 @@ def criar_agendamento():
     dt_inicio = datetime.combine(data['data_atendimento'], data['hora_inicio'])
     dt_inicio = pytz.timezone(os.environ.get('TIMEZONE', 'America/Sao_Paulo')).localize(dt_inicio)
 
-    # [RN-01] Antecedência de 3 horas - Ignorada para ADMIN
+    # Ignorar a antecedência de 3 horas [RN-01] para admin
     if "ADMIN" not in roles and dt_inicio <= agora + timedelta(hours=3):
         return jsonify({"message": "Agendamento para as próximas 3 horas? Gentileza ligar para (11) 98765-4321 e confirmar a disponibilidade."}), 400 # [MSG-05]
 
     if not is_slot_available(data['id_funcionario'], data['data_atendimento'], inicio_minutos, fim_minutos):
         return jsonify({"message": "Este horário acabou de ser reservado por outra pessoa. Por favor, escolha outro."}), 409 # [MSG-03]
 
-    # [RN-07] Status Inicial AGENDADO
-    # [RN-04] Snapshot do valor
+    # Status inicial do agendamento [RN-07] e valor [RN-04]
     novo_agendamento = Agendamento(
         id_cliente=id_cliente,
         id_funcionario=data['id_funcionario'],
@@ -192,7 +190,7 @@ def criar_agendamento():
     db.session.add(novo_agendamento)
     db.session.flush()
 
-    # [RN-05] Log de Auditoria
+    # Log de Auditoria [RN-05]
     id_usuario_logado = int(get_jwt_identity())
     usuario_logado = Usuario.query.get(id_usuario_logado)
     log = LogAuditoria(
@@ -210,15 +208,15 @@ def criar_agendamento():
 @agendamentos_bp.route('/meus', methods=['GET'])
 @jwt_required()
 def listar_meus_agendamentos():
-    # [US-04, US-06] Meus Agendamentos (Para Cliente ou Funcionário)
+    # Meus Agendamentos (cliente ou funcionário) [US-04, US-06]
     id_usuario = int(get_jwt_identity())
     claims = get_jwt()
     roles = claims.get("roles", [])
 
     query = Agendamento.query
     
-    # [PRD] Se tiver role de CLIENTE, vê seus agendamentos.
-    # [PRD] Se tiver role de FUNCIONARIO, vê sua agenda de trabalho.
+    # [PRD] Se tiver role de cliente, verá seus agendamentos.
+    # [PRD] Se tiver role de funcionário, verá sua agenda de trabalho.
     if "CLIENTE" in roles:
         query = query.filter_by(id_cliente=id_usuario)
     elif "FUNCIONARIO" in roles:
@@ -236,7 +234,7 @@ def listar_meus_agendamentos():
     data_ini_str = request.args.get('data_inicio')
     if data_ini_str:
         try:
-            # Ajustado para o padrão DD/MM/AAAA [PD-01]
+            # Mensagem de erro se fora do padrão DD/MM/AAAA [PD-01]
             data_ini = datetime.strptime(data_ini_str, '%d/%m/%Y').date()
             query = query.filter(Agendamento.data_atendimento >= data_ini)
         except ValueError:
@@ -272,7 +270,7 @@ def mudar_status(id):
     status_anterior = agendamento.status
     agora = get_now()
 
-    # [ADMIN] Role Admin tem controle total [US-12.3]
+    # Regra de status do admin [US-12.3]
     if "ADMIN" in roles:
         if novo_status in ['REALIZADO', 'AUSENTE']:
             dt_atendimento = datetime.combine(agendamento.data_atendimento, agendamento.hora_inicio)
@@ -282,7 +280,7 @@ def mudar_status(id):
         # Admin pode CANCELAR ou CONFIRMAR sem restrição de 2h
         pass
 
-    # [CLIENTE] Regras de Cliente [RN-08]
+    # Regra de status do cliente [RN-08]
     elif "CLIENTE" in roles:
         if agendamento.id_cliente != id_usuario:
             return jsonify({"message": "Acesso negado."}), 403
@@ -302,7 +300,7 @@ def mudar_status(id):
         else:
             return jsonify({"message": "Cliente não tem permissão para este status."}), 403
 
-    # [FUNCIONARIO] Regras de Funcionário [RN-09]
+    # Regra de status do funcionário [RN-09]
     elif "FUNCIONARIO" in roles:
         if novo_status in ['REALIZADO', 'AUSENTE']:
             dt_atendimento = datetime.combine(agendamento.data_atendimento, agendamento.hora_inicio)
@@ -312,10 +310,10 @@ def mudar_status(id):
         else:
             return jsonify({"message": "Funcionário não tem permissão para este status."}), 403
 
-    # Atualiza Status
+    # Atualizar status
     agendamento.status = novo_status
     
-    # [RN-05] Auditoria
+    # Auditoria [RN-05]
     log = LogAuditoria(
         id_agendamento=agendamento.id,
         status_anterior=status_anterior,
@@ -325,7 +323,7 @@ def mudar_status(id):
     )
     db.session.add(log)
 
-    # [RN-10] Gatilho de Receita
+    # Gerar receita a partir do agendamento [RN-10]
     if novo_status == 'REALIZADO':
         from app.models import CategoriaFinanceira, LancamentoFinanceiro
         cat_receita = CategoriaFinanceira.query.filter_by(nome_categoria='Serviços Realizados').first()

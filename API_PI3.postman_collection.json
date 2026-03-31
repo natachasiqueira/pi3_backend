@@ -1,0 +1,1133 @@
+{
+  "info": {
+    "_postman_id": "5f048af1-f62b-405d-a711-2a3602fe791e",
+    "name": "API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52311506",
+    "_collection_link": "https://go.postman.co/collection/52311506-5f048af1-f62b-405d-a711-2a3602fe791e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Módulo 1 - Auth",
+      "item": [
+        {
+          "name": "01 - Cadastro de Usuário",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nome_completo\": \"Lucas da Silva\",\r\n  \"telefone\": \"(11) 99999-8888\",\r\n  \"email\": \"lucassilva@teste.com\",\r\n  \"senha\": \"Senha123\",\r\n  \"confirmar_senha\": \"Senha123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/auth/cadastro",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "cadastro"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"ellenpatricio@studio.com.br\",\r\n  \"senha\": \"Admin123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/auth/login",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Ver Perfil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYxOTg5OSwianRpIjoiZmE5NjJlOGEtZmRhYy00YzE4LThkZDAtODFhMzM1ZWZjM2UwIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjIiLCJuYmYiOjE3NzQ2MTk4OTksImNzcmYiOiI2YTc3NmEwOS0zMzY4LTQ2ZTctOGY4MC1mOTM5MGE3OGM1NWMiLCJleHAiOjE3NzQ2MjE2OTksInJvbGVzIjpbIkNMSUVOVEUiXX0.ybZW7WUghYHPMweOBPXCibsvh7bNP_ydEMtPd2mmFTQ",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/auth/perfil",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "perfil"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Atualizar Perfil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjAwMCwianRpIjoiMzJhNDhjNjctZWQ2Yy00NGY0LWI3NWUtOWNjNzUyZDY1MTQxIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjMiLCJuYmYiOjE3NzQ2MjIwMDAsImNzcmYiOiIwNWRjY2RlNy04YWNkLTQ1NDQtYmNjZC01MmRlMTZkZmFiMzAiLCJleHAiOjE3NzQ2MjM4MDAsInJvbGVzIjpbIkNMSUVOVEUiXX0.piLwYLdzwTCUtVLYVMw3x0obU-hz8O4-IVBkIiXqeGI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senha_atual\": \"Senha123\",\r\n  \"nova_senha\": \"Senha456\",\r\n  \"confirmar_nova_senha\": \"Senha456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/auth/perfil",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "perfil"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Excluir Conta",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMDYxMywianRpIjoiYTAyMjdjZTgtZWJiYy00Zjk1LTlmNjgtMWMyMDQyYmRhYWZlIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjIiLCJuYmYiOjE3NzQ2MjA2MTMsImNzcmYiOiI2N2I2ZTU2OC03M2IxLTRkMmEtOWQ5NC0wNGZiZmFjYjcyYTgiLCJleHAiOjE3NzQ2MjI0MTMsInJvbGVzIjpbIkNMSUVOVEUiXX0.IM8oNjTdTlHheDf3b4Hi-Z1nahdzXpV6liq6NcmWJSc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/auth/excluir-conta",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "excluir-conta"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Módulo 2 - Admin",
+      "item": [
+        {
+          "name": "06 - Listar Categorias",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/categorias",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categorias"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Criar Categoria",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nome_categoria\": \"Unhas\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/categorias",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categorias"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Listar Serviços",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/servicos",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "servicos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 - Criar Serviço",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id_categoria\": 2,\r\n  \"nome_servico\": \"Manicure\",\r\n  \"duracao_minutos\": 45,\r\n  \"valor\": \"30.00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/servicos",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "servicos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10 - Editar Serviço",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nome_servico\":\"Manicure e Pedicure\",\r\n    \"duracao_minutos\": 90,\r\n    \"valor\": \"50.00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/servicos/2",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "servicos",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11 - Listar Funcionários",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/funcionarios",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12 - Criar Funcionário",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "  {\r\n    \"nome_completo\": \"Carla Souza\",\r\n    \"email\": \"carlasouza@teste.com\",\r\n    \"telefone\": \"(11) 91234-5678\",\r\n    \"senha\": \"Senha123\",\r\n    \"confirmar_senha\": \"Senha123\"\r\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/funcionarios",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13 - Listar Clientes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/clientes",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "clientes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14 - Criar Cliente (pelo admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyMjQ0MiwianRpIjoiNDI1NmMyMDktM2FjNS00ZDM3LWE3ZmQtOTViNjRlY2NkZTQ4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjI0NDIsImNzcmYiOiI1NTIwZDk5Yi05MGYxLTRmYjQtOTU1Mi1kYWY1ZDRiYWMxNDEiLCJleHAiOjE3NzQ2MjQyNDIsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uH3AX4Y2p4t7VRV2qfmUd4WhdeT-muvqnURMwC1tLRI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nome_completo\": \"Anderson Marques\",\r\n    \"email\": \"andersonmarques@teste.com\",\r\n    \"telefone\": \"(11) 98765-4321\",\r\n    \"senha\": \"Senha123\",\r\n    \"confirmar_senha\": \"Senha123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/clientes",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "clientes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "15 - Criar Horário de Trabalho",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyNDQyNCwianRpIjoiM2VjOWE0ZTAtMmE0MC00NDk1LTg2MzgtMTI2M2Q0ZDNlYWUwIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjQ0MjQsImNzcmYiOiIxMzQ2NmE4NC05MDhhLTRjZDAtOTEyMS1lODQyNjVjMGUzOWUiLCJleHAiOjE3NzQ2MjYyMjQsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.hlFwSq7Nl7xBI8yK9YEWsSOIJnRGXQd27R3LDzLIbZE",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\r\n    \"dia_semana\": 4, \r\n    \"hora_inicio\": \"09:00\",\r\n    \"hora_fim\": \"13:00\"\r\n  },\r\n  {\r\n    \"dia_semana\": 4,\r\n    \"hora_inicio\": \"14:00\",\r\n    \"hora_fim\": \"18:00\"\r\n  },\r\n  {\r\n    \"dia_semana\": 5, \r\n    \"hora_inicio\": \"09:00\",\r\n    \"hora_fim\": \"13:00\"\r\n  },\r\n  {\r\n    \"dia_semana\": 5,\r\n    \"hora_inicio\": \"14:00\",\r\n    \"hora_fim\": \"18:00\"\r\n  }  \r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/funcionarios/2/horarios",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios",
+                "2",
+                "horarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "16 - Editar Cliente",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYyNDQyNCwianRpIjoiM2VjOWE0ZTAtMmE0MC00NDk1LTg2MzgtMTI2M2Q0ZDNlYWUwIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MjQ0MjQsImNzcmYiOiIxMzQ2NmE4NC05MDhhLTRjZDAtOTEyMS1lODQyNjVjMGUzOWUiLCJleHAiOjE3NzQ2MjYyMjQsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.hlFwSq7Nl7xBI8yK9YEWsSOIJnRGXQd27R3LDzLIbZE",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nome_completo\": \"Anderson Marques Oliveira\",\r\n  \"telefone\": \"(11) 94444-5555\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/clientes/5",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "clientes",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "17 - Ver Detalhes Funcionário",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYzNjI1OCwianRpIjoiYTE5MzRiZTAtZDU3OS00MGFmLWIxNDktMzJlNzU5MGQ3ZDEzIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MzYyNTgsImNzcmYiOiJlM2VmZTUwNC04YzAzLTQzMmEtYWMzYS1hNTY2ODFmYWE5ZjciLCJleHAiOjE3NzQ2MzgwNTgsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.JaQVdSUGPc7Mp-pVuAYnInOeP0PTmVtOUZ4_c3oXiG4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/funcionarios/2",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "18 - Editar Funcionário",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY0NDgxNSwianRpIjoiNGM3NzBhZGMtMjlhNy00YjYxLWFlN2UtYjE0N2VjYWYzZjRlIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NDQ4MTUsImNzcmYiOiJhMzJiY2EyNC0zMDlhLTQ1OTctYTMxNC01YTMyNmY0MTY4NjMiLCJleHAiOjE3NzQ2NDY2MTUsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.5HEDUvVaNaq2DxBj-l7qrw_tIK9dK5MoHbpifyN-Eyw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"ids_categorias\": [1, 2]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/funcionarios/2",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "19 - Bloquear Horário",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDYzMjkzNiwianRpIjoiY2ZjNjVmZmItODZmMS00NzFlLTljNjYtN2U4NmEzOGIyNWZhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2MzI5MzYsImNzcmYiOiI0M2E1ZWUxMy1mOThlLTQ2ZDUtOGU5MS00M2U2YWYyNDc3YzYiLCJleHAiOjE3NzQ2MzQ3MzYsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.1rRzRQ1Z6P_ogej0Y7gLqo54k5GvgXvUsj48VmC3Wq8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "  {\r\n    \"data_bloqueio\": \"25/4/2026\", \r\n    \"motivo\": \"Folga.\"\r\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/funcionarios/2/bloqueios",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios",
+                "2",
+                "bloqueios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "20 - Listar Agendamentos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY1MjU2MSwianRpIjoiNTBkMDc3OTgtZjYxZC00YWZiLTk0NjMtOWMzMmFkZjc2YzE1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NTI1NjEsImNzcmYiOiI5YWFmNzc0OC1iNDI0LTRiMzgtYjQzMC1iYzIzMmRhNGZkYzciLCJleHAiOjE3NzQ2NTQzNjEsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.CvupGeHJpmpg73r_E9MN_pec2OLMsotW2vKU70nXx-0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/admin/agendamentos",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "agendamentos"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Módulo 3 - Agendamentos",
+      "item": [
+        {
+          "name": "21 - Consultar Disponibilidade",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY0NDgxNSwianRpIjoiNGM3NzBhZGMtMjlhNy00YjYxLWFlN2UtYjE0N2VjYWYzZjRlIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NDQ4MTUsImNzcmYiOiJhMzJiY2EyNC0zMDlhLTQ1OTctYTMxNC01YTMyNmY0MTY4NjMiLCJleHAiOjE3NzQ2NDY2MTUsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.5HEDUvVaNaq2DxBj-l7qrw_tIK9dK5MoHbpifyN-Eyw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/agendamentos/disponibilidade?id_servico=2&data=24/04/2026",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "agendamentos",
+                "disponibilidade"
+              ],
+              "query": [
+                {
+                  "key": "id_servico",
+                  "value": "2"
+                },
+                {
+                  "key": "data",
+                  "value": "24/04/2026"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "22 - Criar Agendamento",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY1MTk2NSwianRpIjoiYzg3ZmM2MTQtYjZhMC00YjMyLWFlMmMtMmViMjllNTcyYjUzIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjMiLCJuYmYiOjE3NzQ2NTE5NjUsImNzcmYiOiIyOTI2OTUwYy1mZDhkLTRkNDYtOWI1MS03YmY0M2JjYWZhMDIiLCJleHAiOjE3NzQ2NTM3NjUsInJvbGVzIjpbIkNMSUVOVEUiXX0.OItYTykE13a8IhXGFuTg7b9R7t4P8vqerhyx2hEzkAs",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id_servico\": 1,\r\n  \"id_funcionario\": 1,\r\n  \"data_atendimento\": \"27/03/2026\",\r\n  \"hora_inicio\": \"23:00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/agendamentos",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "agendamentos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "23 - Meus Agendamentos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDU2NzE5MywianRpIjoiYzE0OGM5Y2EtZGZiZi00MGYzLWE5ZjctN2QxYmYzZWQ2YTUwIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ1NjcxOTMsImNzcmYiOiJlZmU3YTMzNi1jZGFiLTQ3YzItODNiMy0xOTZhMDdjZWUyNTMiLCJleHAiOjE3NzQ1Njg5OTMsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.uFatf0ip2QqNx2U0osgDptFvbDytzC6gthfC9iRor14",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/agendamentos/meus",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "agendamentos",
+                "meus"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "24 - Alterar Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY1MjU2MSwianRpIjoiNTBkMDc3OTgtZjYxZC00YWZiLTk0NjMtOWMzMmFkZjc2YzE1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NTI1NjEsImNzcmYiOiI5YWFmNzc0OC1iNDI0LTRiMzgtYjQzMC1iYzIzMmRhNGZkYzciLCJleHAiOjE3NzQ2NTQzNjEsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.CvupGeHJpmpg73r_E9MN_pec2OLMsotW2vKU70nXx-0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"status\": \"REALIZADO\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/agendamentos/2/status",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "agendamentos",
+                "2",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Módulo 4 - Financeiro",
+      "item": [
+        {
+          "name": "25 - Listar Lançamentos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY1MjU2MSwianRpIjoiNTBkMDc3OTgtZjYxZC00YWZiLTk0NjMtOWMzMmFkZjc2YzE1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NTI1NjEsImNzcmYiOiI5YWFmNzc0OC1iNDI0LTRiMzgtYjQzMC1iYzIzMmRhNGZkYzciLCJleHAiOjE3NzQ2NTQzNjEsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.CvupGeHJpmpg73r_E9MN_pec2OLMsotW2vKU70nXx-0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/financeiro/lancamentos",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "lancamentos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "26 - Registrar Pagamento",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY1MjU2MSwianRpIjoiNTBkMDc3OTgtZjYxZC00YWZiLTk0NjMtOWMzMmFkZjc2YzE1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NTI1NjEsImNzcmYiOiI5YWFmNzc0OC1iNDI0LTRiMzgtYjQzMC1iYzIzMmRhNGZkYzciLCJleHAiOjE3NzQ2NTQzNjEsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.CvupGeHJpmpg73r_E9MN_pec2OLMsotW2vKU70nXx-0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"forma_pagamento\": \"Pix\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/financeiro/lancamentos/1/pagamento",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "lancamentos",
+                "1",
+                "pagamento"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "27 - Dashboard Operacional",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY1MjU2MSwianRpIjoiNTBkMDc3OTgtZjYxZC00YWZiLTk0NjMtOWMzMmFkZjc2YzE1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NTI1NjEsImNzcmYiOiI5YWFmNzc0OC1iNDI0LTRiMzgtYjQzMC1iYzIzMmRhNGZkYzciLCJleHAiOjE3NzQ2NTQzNjEsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.CvupGeHJpmpg73r_E9MN_pec2OLMsotW2vKU70nXx-0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/financeiro/dashboard/operacional",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "dashboard",
+                "operacional"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "28 - Dashboard Financeiro",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY1MjU2MSwianRpIjoiNTBkMDc3OTgtZjYxZC00YWZiLTk0NjMtOWMzMmFkZjc2YzE1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NTI1NjEsImNzcmYiOiI5YWFmNzc0OC1iNDI0LTRiMzgtYjQzMC1iYzIzMmRhNGZkYzciLCJleHAiOjE3NzQ2NTQzNjEsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.CvupGeHJpmpg73r_E9MN_pec2OLMsotW2vKU70nXx-0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/financeiro/dashboard/financeiro",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "dashboard",
+                "financeiro"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "29 - Auditoria de Agendamento",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDY1MjU2MSwianRpIjoiNTBkMDc3OTgtZjYxZC00YWZiLTk0NjMtOWMzMmFkZjc2YzE1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NzQ2NTI1NjEsImNzcmYiOiI5YWFmNzc0OC1iNDI0LTRiMzgtYjQzMC1iYzIzMmRhNGZkYzciLCJleHAiOjE3NzQ2NTQzNjEsInJvbGVzIjpbIkFETUlOIiwiRlVOQ0lPTkFSSU8iXX0.CvupGeHJpmpg73r_E9MN_pec2OLMsotW2vKU70nXx-0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://pi3backend.vercel.app/api/financeiro/auditoria/1",
+              "protocol": "https",
+              "host": [
+                "pi3backend",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "auditoria",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "url_base",
+      "value": ""
+    }
+  ]
+}

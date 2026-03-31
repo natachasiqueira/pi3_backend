@@ -28,7 +28,7 @@ def cadastro():
     if Usuario.query.filter_by(email=data['email']).first():
         return jsonify({"message": "Este e-mail já está cadastrado em nosso sistema. Clique aqui para realizar o login."}), 409
 
-    # Criar novo usuário como CLIENTE por padrão [US-01]
+    # Criar novo usuário como cliente por padrão [US-01]
     novo_usuario = Usuario(
         nome_completo=data['nome_completo'],
         email=data['email'],
@@ -115,7 +115,7 @@ def update_perfil():
 
     # Atualizar senha se fornecida [RI-09]
     if 'nova_senha' in data:
-        # Validação de Senha Dupla [RI-09, MSG-08]
+        # Validação de senha dupla [RI-09, MSG-08]
         if data['nova_senha'] != data.get('confirmar_nova_senha'):
             return jsonify({"message": "As senhas informadas não coincidem. Verifique e tente novamente."}), 400
             
@@ -135,7 +135,7 @@ def excluir_conta():
     if not usuario:
         return jsonify({"message": "Usuário não encontrado."}), 404
 
-    # [RN-11] Padrão de Anonimização (LGPD)
+    # Padrão de Anonimização [RN-11]
     usuario.nome_completo = "Anonimizado"
     usuario.email = f"{usuario.id}@anonimizado.com"
     usuario.telefone = "(00) 00000-0000"

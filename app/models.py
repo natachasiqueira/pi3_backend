@@ -7,7 +7,7 @@ def get_now():
     tz = pytz.timezone(os.environ.get('TIMEZONE', 'America/Sao_Paulo'))
     return datetime.now(tz)
 
-# Tabela Associativa para Especialidades (N:N entre Funcionário e Categoria de Serviço)
+# Tabela de especialidades associada à tabela de categorias de serviços (N:N entre Funcionário e Categoria de Serviço)
 categorias_funcionarios = db.Table('categorias_funcionarios',
     db.Column('id_funcionario', db.Integer, db.ForeignKey('funcionarios.id'), primary_key=True),
     db.Column('id_categoria', db.Integer, db.ForeignKey('categorias_servicos.id'), primary_key=True)
@@ -71,7 +71,7 @@ class HorarioTrabalho(db.Model):
     __tablename__ = 'horarios_trabalho'
     id = db.Column(db.Integer, primary_key=True)
     id_funcionario = db.Column(db.Integer, db.ForeignKey('funcionarios.id'), nullable=False)
-    dia_semana = db.Column(db.Integer, nullable=False) # 0-6 (Seg-Dom)
+    dia_semana = db.Column(db.Integer, nullable=False) # 0-6 (Dom-Sab)
     hora_inicio = db.Column(db.Time, nullable=False)
     hora_fim = db.Column(db.Time, nullable=False)
 
