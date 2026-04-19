@@ -115,12 +115,27 @@ def dashboard_operacional():
         Agendamento.hora_inicio, func.count(Agendamento.id)
     ).group_by(Agendamento.hora_inicio).order_by(func.count(Agendamento.id).desc()).limit(5).all()
 
+    # 6. Total de Clientes
+    total_clientes = Usuario.query.filter(Usuario.role.contains('CLIENTE')).count()
+    
+    # 7. Total de clientes anonimizados (possuem o nome fixo "Anonimizado" conforme RN-11)
+    clientes_anonimizados = Usuario.query.filter(
+        Usuario.role.contains('CLIENTE'),
+        Usuario.nome_completo == "Anonimizado"
+    ).count()
+    
+    # 8. Total de clientes ativos
+    clientes_ativos = total_clientes - clientes_anonimizados
+
     return jsonify({
         "atendimentos_por_status": dict(status_counts),
         "servicos_mais_realizados": [{"servico": s[0], "total": s[1]} for s in servicos_populares],
         "servicos_maior_duracao": [{"servico": s.nome_servico, "duracao": s.duracao_minutos} for s in servicos_longos],
         "dias_maior_demanda": [{"dia": d[0].strip(), "total": d[1]} for d in dias_demanda],
         "horarios_maior_demanda": [{"horario": h[0].strftime('%H:%M'), "total": h[1]} for h in horarios_demanda]
+        "card_total_clientes": total_clientes,
+        "card_clientes_ativos": clientes_ativos,
+        "card_clientes_anonimizados": clientes_anonimizados
     }), 200
 
 @financeiro_bp.route('/dashboard/financeiro', methods=['GET'])

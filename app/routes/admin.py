@@ -48,6 +48,39 @@ def criar_categoria():
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 201
 
+@admin_bp.route('/categorias/<int:id>', methods=['PUT'])
+@admin_required()
+def editar_categoria(id):
+    categoria = CategoriaServico.query.get_or_404(id)
+    schema = CategoriaServicoSchema(partial=True)
+    try:
+        data = schema.load(request.json)
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 400
+
+    if 'nome_categoria' in data:
+        # Verifica duplicidade
+        existente = CategoriaServico.query.filter_by(nome_categoria=data['nome_categoria']).first()
+        if existente and existente.id != categoria.id:
+            return jsonify({"message": "Categoria já existe."}), 409
+        categoria.nome_categoria = data['nome_categoria']
+
+    db.session.commit()
+    return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
+
+@admin_bp.route('/categorias/<int:id>', methods=['DELETE'])
+@admin_required()
+def excluir_categoria(id):
+    categoria = CategoriaServico.query.get_or_404(id)
+    
+    # Validação de integridade relacional
+    if Servico.query.filter_by(id_categoria=id).first():
+        return jsonify({"message": "Não é possível excluir categorias que possuem serviços vinculados."}), 409
+        
+    db.session.delete(categoria)
+    db.session.commit()
+    return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
+
 @admin_bp.route('/servicos', methods=['GET'])
 @jwt_required()
 def listar_servicos():
@@ -103,6 +136,17 @@ def editar_servico(id):
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 200
 
+@admin_bp.route('/servicos/<int:id>', methods=['DELETE'])
+@admin_required()
+def inativar_servico(id):
+    servico = Servico.query.get_or_404(id)
+    
+    # Inativação lógica (Soft Delete) [US-09]
+    servico.ativo = False
+    
+    db.session.commit()
+    return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
+
 # --- GESTÃO DE FUNCIONÁRIOS [US-10] ---
 
 @admin_bp.route('/funcionarios', methods=['GET'])
@@ -111,8 +155,28 @@ def listar_funcionarios():
     page = request.args.get('page', 1, type=int)
     per_page = 50
     
-    # Busca funcionários trazendo dados do usuário vinculado
-    funcionarios_pagination = Funcionario.query.join(Usuario).paginate(page=page, per_page=per_page)
+    query = Funcionario.query.join(Usuario)
+    
+    # Filtros de Funcionários [US-10]
+    nome = request.args.get('nome')
+    if nome: query = query.filter(Usuario.nome_completo.ilike(f'%{nome}%'))
+    
+    telefone = request.args.get('telefone')
+    if telefone: query = query.filter(Usuario.telefone.ilike(f'%{telefone}%'))
+    
+    email = request.args.get('email')
+    if email: query = query.filter(Usuario.email.ilike(f'%{email}%'))
+    
+    data_cadastro = request.args.get('data_cadastro')
+    if data_cadastro:
+        try:
+            from datetime import datetime
+            dc = datetime.strptime(data_cadastro, '%d/%m/%Y').date()
+            query = query.filter(func.date(Usuario.data_criacao) == dc)
+        except ValueError:
+            return jsonify({"message": "Formato de data inválido. Use DD/MM/AAAA."}), 400
+
+    funcionarios_pagination = query.paginate(page=page, per_page=per_page)
     
     results = []
     for f in funcionarios_pagination.items:
@@ -178,9 +242,28 @@ def listar_clientes():
     page = request.args.get('page', 1, type=int)
     per_page = 50
     
-    # RI-08: Paginação e filtro por role CLIENTE [PRD - Seção 2]
-    # Agora usa contains para suportar múltiplas roles
-    clientes_pagination = Usuario.query.filter(Usuario.role.contains('CLIENTE')).paginate(page=page, per_page=per_page)
+    query = Usuario.query.filter(Usuario.role.contains('CLIENTE'))
+    
+    # Filtros de Clientes [US-11]
+    nome = request.args.get('nome')
+    if nome: query = query.filter(Usuario.nome_completo.ilike(f'%{nome}%'))
+    
+    telefone = request.args.get('telefone')
+    if telefone: query = query.filter(Usuario.telefone.ilike(f'%{telefone}%'))
+    
+    email = request.args.get('email')
+    if email: query = query.filter(Usuario.email.ilike(f'%{email}%'))
+    
+    data_cadastro = request.args.get('data_cadastro')
+    if data_cadastro:
+        try:
+            from datetime import datetime
+            dc = datetime.strptime(data_cadastro, '%d/%m/%Y').date()
+            query = query.filter(func.date(Usuario.data_criacao) == dc)
+        except ValueError:
+            return jsonify({"message": "Formato de data inválido. Use DD/MM/AAAA."}), 400
+
+    clientes_pagination = query.paginate(page=page, per_page=per_page)
     
     schema = UsuarioSchema(many=True)
     return jsonify({
@@ -346,20 +429,32 @@ def listar_todos_agendamentos():
     page = request.args.get('page', 1, type=int)
     per_page = 50
     
-    query = Agendamento.query
+    query = Agendamento.query.join(Servico)
     
     # Filtros combinados [US-12.2]
     status = request.args.get('status')
-    if status: query = query.filter_by(status=status)
+    if status: query = query.filter(Agendamento.status == status)
     
     id_cliente = request.args.get('id_cliente', type=int)
-    if id_cliente: query = query.filter_by(id_cliente=id_cliente)
+    if id_cliente: query = query.filter(Agendamento.id_cliente == id_cliente)
     
     id_funcionario = request.args.get('id_funcionario', type=int)
-    if id_funcionario: query = query.filter_by(id_funcionario=id_funcionario)
+    if id_funcionario: query = query.filter(Agendamento.id_funcionario == id_funcionario)
     
     id_servico = request.args.get('id_servico', type=int)
-    if id_servico: query = query.filter_by(id_servico=id_servico)
+    if id_servico: query = query.filter(Agendamento.id_servico == id_servico)
+    
+    id_categoria = request.args.get('id_categoria', type=int)
+    if id_categoria: query = query.filter(Servico.id_categoria == id_categoria)
+    
+    data_atendimento = request.args.get('data_atendimento')
+    if data_atendimento:
+        try:
+            from datetime import datetime
+            da = datetime.strptime(data_atendimento, '%d/%m/%Y').date()
+            query = query.filter(Agendamento.data_atendimento == da)
+        except ValueError:
+            return jsonify({"message": "Formato de data inválido. Use DD/MM/AAAA."}), 400
 
     agendamentos_pagination = query.order_by(Agendamento.data_atendimento.desc()).paginate(page=page, per_page=per_page)
     
