@@ -132,7 +132,7 @@ def dashboard_operacional():
         "servicos_mais_realizados": [{"servico": s[0], "total": s[1]} for s in servicos_populares],
         "servicos_maior_duracao": [{"servico": s.nome_servico, "duracao": s.duracao_minutos} for s in servicos_longos],
         "dias_maior_demanda": [{"dia": d[0].strip(), "total": d[1]} for d in dias_demanda],
-        "horarios_maior_demanda": [{"horario": h[0].strftime('%H:%M'), "total": h[1]} for h in horarios_demanda]
+        "horarios_maior_demanda": [{"horario": h[0].strftime('%H:%M'), "total": h[1]} for h in horarios_demanda],
         "card_total_clientes": total_clientes,
         "card_clientes_ativos": clientes_ativos,
         "card_clientes_anonimizados": clientes_anonimizados
