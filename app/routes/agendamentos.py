@@ -185,7 +185,7 @@ def criar_agendamento():
         hora_fim=hora_fim,
         valor_aplicado=servico.valor,
         servico_aplicado=servico.nome_servico, 
-        categoria_aplicada=nome_categoria,
+        categoria_aplicada=servico.categoria.nome_categoria,
         status='AGENDADO'
     )
     
