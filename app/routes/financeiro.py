@@ -96,10 +96,13 @@ def dashboard_operacional():
     # 1. Total de atendimentos por status (inclui cancelamentos e ausências)
     status_counts = db.session.query(Agendamento.status, func.count(Agendamento.id)).group_by(Agendamento.status).all()
     
-    # 2. Serviços mais realizados
+    # 2. Serviços mais realizados 
     servicos_populares = db.session.query(
-        Servico.nome_servico, func.count(Agendamento.id).label('total')
-    ).join(Agendamento).group_by(Servico.id).order_by(func.count(Agendamento.id).desc()).limit(5).all()
+        Agendamento.servico_aplicado, # Usamos o nome congelado para não alterar o histórico, caso o serviço mude de nome.
+        func.count(Agendamento.id).label('total')
+    ).group_by(Agendamento.servico_aplicado)\
+    .order_by(func.count(Agendamento.id).desc())\
+    .limit(5).all()
 
     # 3. Serviços com maior duração [US-13]
     servicos_longos = Servico.query.order_by(Servico.duracao_minutos.desc()).limit(5).all()
@@ -165,12 +168,17 @@ def dashboard_financeiro():
     # 1. Receita por forma de pagamento [US-16]
     receita_pagamento = db.session.query(
         LancamentoFinanceiro.forma_pagamento, func.sum(LancamentoFinanceiro.valor)
-    ).filter(LancamentoFinanceiro.id.in_([l.id for l in query_base.all()])).group_by(LancamentoFinanceiro.forma_pagamento).all()
+    ).filter(LancamentoFinanceiro.id.in_([l.id for l in query_base.all()]))\
+     .group_by(LancamentoFinanceiro.forma_pagamento)\
+     .all()
 
     # 2. Receita por serviço [US-16]
     receita_servico = db.session.query(
-        Servico.nome_servico, func.sum(Agendamento.valor_aplicado)
-    ).join(Agendamento).filter(Agendamento.id.in_([a.id for a in query_agendamentos.all()])).group_by(Servico.nome_servico).all()
+        Agendamento.servico_aplicado, func.sum(LancamentoFinanceiro.valor)
+    ).join(LancamentoFinanceiro, LancamentoFinanceiro.id_agendamento == Agendamento.id)\
+     .filter(LancamentoFinanceiro.id.in_([l.id for l in query_base.all()]))\
+     .group_by(Agendamento.servico_aplicado)\
+     .all()
 
     # 3. Ticket Médio (Receita Total / Total de Realizados) [US-16]
     total_receita = db.session.query(func.sum(LancamentoFinanceiro.valor)).filter(LancamentoFinanceiro.id.in_([l.id for l in query_base.all()])).scalar() or 0
@@ -191,7 +199,8 @@ def dashboard_financeiro():
         func.sum(LancamentoFinanceiro.valor)
     ).filter(LancamentoFinanceiro.id.in_([l.id for l in query_base.all()]))\
      .group_by('data')\
-     .order_by('data').all()
+     .order_by('data')\
+     .all()
 
     return jsonify({
         "receita_por_pagamento": [{"forma": r[0], "valor": float(r[1])} for r in receita_pagamento if r[0]],

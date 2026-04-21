@@ -92,6 +92,8 @@ class Agendamento(db.Model):
     hora_inicio = db.Column(db.Time, nullable=False)
     hora_fim = db.Column(db.Time, nullable=False)
     valor_aplicado = db.Column(db.Numeric(10, 2), nullable=False) # Snapshot do preço [RN-04]
+    servico_aplicado = db.Column(db.String(100), nullable=False)  # Snapshot do serviço - solução incluída em 20/04
+    categoria_aplicada = db.Column(db.String(100), nullable=False) # Snapshot da categoria - solução incluída em 20/04
     status = db.Column(db.String(20), nullable=False, default='AGENDADO')
     data_criacao = db.Column(db.DateTime, default=get_now)
     data_atualizacao = db.Column(db.DateTime, default=get_now, onupdate=get_now)

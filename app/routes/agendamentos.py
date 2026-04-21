@@ -184,6 +184,8 @@ def criar_agendamento():
         hora_inicio=data['hora_inicio'],
         hora_fim=hora_fim,
         valor_aplicado=servico.valor,
+        servico_aplicado=servico.nome_servico, 
+        categoria_aplicada=nome_categoria,
         status='AGENDADO'
     )
     
@@ -248,7 +250,7 @@ def listar_meus_agendamentos():
             "id": a.id,
             "data": a.data_atendimento.strftime('%d/%m/%Y'), # [PD-01]
             "horario": f"{a.hora_inicio.strftime('%H:%M')} - {a.hora_fim.strftime('%H:%M')}", # [PD-01]
-            "servico": a.servico.nome_servico,
+            "servico": a.servico.servico_aplicado, 
             "cliente": a.cliente.nome_completo,
             "funcionario": a.funcionario.usuario.nome_completo,
             "valor": f"R$ {a.valor_aplicado:,.2f}".replace('.', ','), # [PD-02]
@@ -331,7 +333,7 @@ def mudar_status(id):
             lancamento = LancamentoFinanceiro(
                 id_categoria_financeira=cat_receita.id,
                 id_agendamento=agendamento.id,
-                nome_lancamento=f"Receita: {agendamento.servico.nome_servico} - {agendamento.cliente.nome_completo}",
+                nome_lancamento=f"Receita: {agendamento.servico.servico_aplicado} - {agendamento.cliente.nome_completo}",
                 valor=agendamento.valor_aplicado,
                 status_pagamento='PENDENTE' # [RN-12]
             )

@@ -101,12 +101,13 @@ class AgendamentoSchema(Schema):
     data_atendimento = fields.Date(required=True, format='%d/%m/%Y') # [PD-01]
     hora_inicio = fields.Time(required=True, format='%H:%M') # [PD-01]
     hora_fim = fields.Time(dump_only=True, format='%H:%M') # [PD-01]
-    valor_aplicado = fields.Method("get_valor_formatado", dump_only=True) # [PD-02]
     status = fields.Str(dump_only=True)
     nome_cliente = fields.Str(dump_only=True)
     nome_funcionario = fields.Str(dump_only=True)
-    nome_servico = fields.Str(dump_only=True)
     duracao_minutos = fields.Int(dump_only=True)
+    valor_aplicado = fields.Method("get_valor_formatado", dump_only=True) # Preço congelado para log de auditoria [PD-02]
+    servico_aplicado = fields.Str(dump_only=True) # Serviço congelado para log de auditoria - solução incluída em 20/04
+    categoria_aplicada = fields.Str(dump_only=True) # Categoria congelada para log de auditoria - solução incluída em 20/04
 
     def get_valor_formatado(self, obj):
                 # 1. Pegar o valor
