@@ -464,7 +464,7 @@ def listar_todos_agendamentos():
             "id": a.id,
             "data": a.data_atendimento.strftime('%d/%m/%Y'),
             "horario": f"{a.hora_inicio.strftime('%H:%M')} - {a.hora_fim.strftime('%H:%M')}",
-            "servico": a.servico.servico_aplicado,
+            "servico": a.servico_aplicado,
             "cliente": a.cliente.nome_completo,
             "funcionario": a.funcionario.usuario.nome_completo,
             "valor": f"R$ {a.valor_aplicado:,.2f}".replace('.', ','),
