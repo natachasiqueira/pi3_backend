@@ -53,6 +53,7 @@ class CategoriaServico(db.Model):
     __tablename__ = 'categorias_servicos'
     id = db.Column(db.Integer, primary_key=True)
     nome_categoria = db.Column(db.String(100), nullable=False, unique=True)
+    ativo = db.Column(db.Boolean, default=True)
     
     servicos = db.relationship('Servico', backref='categoria', lazy=True)
 

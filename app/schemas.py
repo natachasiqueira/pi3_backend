@@ -64,6 +64,7 @@ class UpdatePerfilSchema(Schema):
 class CategoriaServicoSchema(Schema):
     id = fields.Int(dump_only=True)
     nome_categoria = fields.Str(required=True, validate=validate.Length(max=100))
+    ativo = fields.Bool
 
 class ServicoSchema(Schema):
     id = fields.Int(dump_only=True)
@@ -71,7 +72,7 @@ class ServicoSchema(Schema):
     nome_servico = fields.Str(required=True, validate=validate.Length(max=255))
     duracao_minutos = fields.Int(required=True)
     valor = fields.Decimal(required=True, as_string=True)
-    ativo = fields.Bool(dump_only=True)
+    ativo = fields.Bool
     nome_categoria = fields.Str(dump_only=True)
 
 class HorarioTrabalhoSchema(Schema):

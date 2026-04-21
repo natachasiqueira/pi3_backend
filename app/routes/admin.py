@@ -64,20 +64,9 @@ def editar_categoria(id):
         if existente and existente.id != categoria.id:
             return jsonify({"message": "Categoria já existe."}), 409
         categoria.nome_categoria = data['nome_categoria']
-
-    db.session.commit()
-    return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
-
-@admin_bp.route('/categorias/<int:id>', methods=['DELETE'])
-@admin_required()
-def excluir_categoria(id):
-    categoria = CategoriaServico.query.get_or_404(id)
-    
-    # Validação de integridade relacional
-    if Servico.query.filter_by(id_categoria=id).first():
-        return jsonify({"message": "Não é possível excluir categorias que possuem serviços vinculados."}), 409
+    if 'ativo' in data:
+        categoria.ativo = data['ativo']
         
-    db.session.delete(categoria)
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
 
@@ -135,17 +124,6 @@ def editar_servico(id):
 
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 200
-
-@admin_bp.route('/servicos/<int:id>', methods=['DELETE'])
-@admin_required()
-def inativar_servico(id):
-    servico = Servico.query.get_or_404(id)
-    
-    # Inativação lógica (Soft Delete) [US-09]
-    servico.ativo = False
-    
-    db.session.commit()
-    return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
 
 # --- GESTÃO DE FUNCIONÁRIOS [US-10] ---
 
