@@ -1,0 +1,2331 @@
+{
+  "info": {
+    "_postman_id": "efc53c28-7aa2-4a80-98b1-b3cc1036b993",
+    "name": "API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52311506",
+    "_collection_link": "https://go.postman.co/collection/52311506-efc53c28-7aa2-4a80-98b1-b3cc1036b993?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Módulo 1 - Auth",
+      "item": [
+        {
+          "name": "Cadastro de Usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "\r",
+                  "// Se a API retornar um JSON, extrai os dados. Se não, cria um objeto vazio para não quebrar o teste.\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 201) {\r",
+                  "    pm.test(\"Usuário cadastrado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(201);\r",
+                  "    });\r",
+                  "    \r",
+                  "    pm.test(\"Retorna a mensagem de sucesso correta\", function () {\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Conta criada com sucesso! Faça seu login para continuar.\");\r",
+                  "    });\r",
+                  "    \r",
+                  "} else if (status === 400 || status === 409 || status === 422) {\r",
+                  "    pm.test(\"Teste de validação: Dados inválidos ou e-mail já existente\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 409, 422]);\r",
+                  "    });\r",
+                  "    \r",
+                  "    pm.test(\"O sistema retornou uma mensagem de erro explicativa\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property(\"mensagem\");\r",
+                  "    });\r",
+                  "    \r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success; \r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nome_completo\": \"Lucas da Silva\",\r\n  \"telefone\": \"(11) 99999-8888\",\r\n  \"email\": \"lucassilva@teste.com\",\r\n  \"senha\": \"Senha123\",\r\n  \"confirmar_senha\": \"Senha123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/auth/cadastro",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "cadastro"
+              ]
+            },
+            "description": "### Cadastro de Novo Usuário\n\nEndpoint responsável por registrar novos clientes no sistema.\n\n**Parâmetros do Body (JSON):**\n\n- `nome_completo` (String, Obrigatório): Limite máximo de 255 caracteres.\n    \n- `email` (String, Obrigatório): Deve ser único e no formato padrão. É a informação que será usada para o login.\n    \n- `telefone` (String, Obrigatório): Formato esperado com máscara (XX) XXXXX-XXXX.\n    \n- `senha` (String, Obrigatório): Mínimo de 8 caracteres, contendo obrigatoriamente letras, números e pelo menos uma letra maiúscula.\n    \n- `confirmar_senha` (String, Obrigatório): Deve ser idêntica à senha informada.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso:** Preencher todos os dados corretamente com um e-mail novo. Esperado: `Status 201 Created` e a mensagem \"Conta criada com sucesso! Faça seu login para continuar.\"\n    \n2. **E-mail Duplicado:** Tentar enviar o mesmo e-mail duas vezes. Esperado: Erro informando \"Este e-mail já está cadastrado em nosso sistema. Clique aqui para realizar o login.\"\n    \n3. **Senha Fraca:** Enviar uma senha curta ou sem os caracteres obrigatórios. Esperado: Erro informando \"A senha deve conter no mínimo 8 caracteres, incluindo letras, números e pelo menos uma letra maiúscula.\"\n    \n4. **Senhas Divergentes:** Enviar `senha` diferente de `confirmar_senha`. Esperado: Erro informando \"As senhas informadas não coincidem. Verifique e tente novamente.\""
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Login realizado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Token de acesso recebido\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('access_token');\r",
+                  "        // Salva o token automaticamente para as próximas abas\r",
+                  "        pm.environment.set(\"temp_token\", jsonData.access_token);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Teste de validação: Credenciais incorretas\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Mensagem de erro correta\", function () {\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"E-mail ou senha inválidos. Tente novamente.\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"ellenpatricio@studio.com.br\",\r\n  \"senha\": \"Admin123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/auth/login",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "### Autenticação no Sistema\n\nEndpoint para realizar o login e obter acesso às áreas restritas (Cliente, Funcionário ou Admin).\n\n**Parâmetros do Body (JSON):**\n\n- `email` (String, Obrigatório): E-mail cadastrado.\n    \n- `senha` (String, Obrigatório): Senha correspondente.\n    \n\n**Usuário Padrão para Testes (Seed):**\n\n- **E-mail:** ellenpatricio@studio.com.br\n    \n- **Senha:** Admin123\n    \n- **Perfil:** Admin + Funcionária\n    \n\n**Observação Importante:**  \nAo realizar o login com sucesso, o sistema retorna um `access_token`. Este token é salvo automaticamente pelo Postman na variável `{{temp_token}}` e será usado para autorizar todas as próximas requisições desta collection."
+          },
+          "response": []
+        },
+        {
+          "name": "Meu Perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Perfil recuperado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Estrutura de dados está correta\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('id');\r",
+                  "        pm.expect(jsonData).to.have.property('nome_completo');\r",
+                  "        pm.expect(jsonData).to.have.property('email');\r",
+                  "        pm.expect(jsonData).to.have.property('role');\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Formato do e-mail é válido\", function () {\r",
+                  "        const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\r",
+                  "        pm.expect(jsonData.email).to.match(emailRegex);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro de Autenticação: Token ausente ou expirado\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado ao carregar perfil\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/auth/perfil",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "perfil"
+              ]
+            },
+            "description": "### Visualizar Meu Perfil\n\nRetorna os dados do utilizador actualmente autenticado no sistema.\n\n**Tipo de Requisição:** GET (Protegida por Token)\n\n**O que este endpoint faz:**\n\n- Valida se o token enviado no Header é válido.\n    \n- Procura no banco de dados as informações vinculadas a esse token.\n    \n- Devolve os dados básicos de identificação e o nível de acesso (Role).\n    \n\n**Dados esperados na resposta:**\n\n- `id`: Identificador único gerado automaticamente.\n    \n- `nome_completo`: Nome registado no sistema.\n    \n- `email`: Endereço de e-mail utilizado no login.\n    \n- `telefone`: Telefone com a máscara (XX) XXXXX-XXXX.\n    \n- `role`: Perfil de acesso (CLIENTE, FUNCIONARIO ou ADMIN)."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar o Meu Perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Perfil atualizado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Retorna a mensagem de sucesso padrão\", function () {\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Teste de validação: Dados incorretos ou senhas divergentes\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"O sistema retornou uma mensagem de erro explicativa\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property(\"mensagem\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro: Não autorizado (Token inválido ou senha atual incorreta)\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "    \r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senha_atual\": \"Senha123\",\r\n  \"nova_senha\": \"Senha456\",\r\n  \"confirmar_nova_senha\": \"Senha456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/auth/perfil",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "perfil"
+              ]
+            },
+            "description": "### Atualizar Meu Perfil\n\nEndpoint para o usuário autenticado atualizar seus dados pessoais ou alterar a sua senha de acesso.\n\n**Parâmetros do Body (JSON):**\n\n- `nome_completo` (String, Opcional): Limite máximo de 255 caracteres.\n    \n- `telefone` (String, Opcional): Deve aplicar a máscara de formatação (XX) XXXXX-XXXX.\n    \n- `email` (String, Opcional): Novo e-mail, deve ser único no sistema.\n    \n- `senha_atual` (String, Condicional): Obrigatória apenas se o usuário for alterar a senha.\n    \n- `nova_senha` (String, Condicional): Mínimo de 8 caracteres, incluindo letras, números e pelo menos uma letra maiúscula.\n    \n- `confirmar_nova_senha` (String, Condicional): Deve ser idêntica à `nova_senha`.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Edição de Dados Básicos:** Enviar apenas um campo (ex: `telefone`). Esperado: `Status 200 OK` e a mensagem \"Operação realizada com sucesso!\".\n    \n2. **Troca de Senha com Sucesso:** Enviar `senha_atual`, `nova_senha` e `confirmar_nova_senha` corretamente. Esperado: `Status 200 OK` e a mensagem de sucesso.\n    \n3. **Senhas Divergentes:** Enviar `nova_senha` diferente da confirmação. Esperado: Erro com a mensagem \"As senhas informadas não coincidem. Verifique e tente novamente.\"\n    \n4. **Senha Atual Incorreta:** Tentar trocar a senha fornecendo uma `senha_atual` que não bate com o banco. Esperado: `Status 401 Unauthorized`."
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir Conta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200 || status === 204) {\r",
+                  "    pm.test(\"Conta anonimizada/excluída com sucesso\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([200, 204]);\r",
+                  "    });\r",
+                  "\r",
+                  "    if (status === 200) {\r",
+                  "        pm.test(\"Retorna a mensagem de sucesso padrão\", function () {\r",
+                  "            pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "        });\r",
+                  "    }\r",
+                  "\r",
+                  "    // Opcional: Limpa o token do ambiente já que a conta não existe mais\r",
+                  "    pm.environment.unset(\"temp_token\");\r",
+                  "    console.log(\"Token removido. Usuário não tem mais acesso.\");\r",
+                  "\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro: Não autorizado (Token inválido)\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/auth/excluir-conta",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "excluir-conta"
+              ]
+            },
+            "description": "### Excluir Conta (Anonimização LGPD)\n\nEndpoint responsável por realizar a exclusão autônoma da conta do usuário, aplicando o processo de anonimização irreversível.\n\n**Tipo de Requisição:** DELETE (Protegida por Token)\n\n**Regras de Negócio (LGPD):**\n\n- O processo é irreversível.\n    \n- O **ID** e a **Role** do usuário são mantidos para fins de integridade do sistema.\n    \n- O **Nome** é alterado para \"Anonimizado\".\n    \n- O **E-mail** é alterado para o formato \"[id@anonimizado.com](https://mailto:id@anonimizado.com)\".\n    \n- O **Telefone** é alterado para \"(00) 00000-0000\".\n    \n\n**Cenário de Teste:**\n\n1. **Sucesso:** O usuário autenticado solicita a exclusão. Esperado: `Status 200 OK` ou `204 No Content` e a aplicação das regras de anonimização no banco de dados."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Módulo 2 - Admin",
+      "item": [
+        {
+          "name": "Listar Categorias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Categorias listadas com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"O retorno é uma lista (Array)\", function () {\r",
+                  "        pm.expect(jsonData).to.be.an('array');\r",
+                  "    });\r",
+                  "\r",
+                  "    // Se houver pelo menos uma categoria, valida a estrutura do primeiro item\r",
+                  "    if (jsonData.length > 0) {\r",
+                  "        pm.test(\"Itens possuem ID e Nome da Categoria\", function () {\r",
+                  "            pm.expect(jsonData[0]).to.have.property('id');\r",
+                  "            pm.expect(jsonData[0]).to.have.property('nome_categoria');\r",
+                  "        });\r",
+                  "    }\r",
+                  "\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Erro: Acesso negado ou Token inválido\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado ao listar categorias\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/admin/categorias",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categorias"
+              ]
+            },
+            "description": "### Listar Categorias\n\nRetorna a lista de todas as categorias de serviços cadastradas no estúdio (ex: Unhas, Cabelo, Depilação).\n\n**Tipo de Requisição:** GET (Protegida - Acesso restrito a ADMIN)\n\n**Regras de Negócio e Interface:**\n\n- **Acesso:** Disponível apenas para usuários com a role `ADMIN`.\n    \n- **Paginação:** Conforme as regras do sistema, a tabela exibe até 50 itens por página.\n    \n- **Uso:** Este endpoint deve ser consultado antes de criar ou editar um serviço para garantir que o `id_categoria` utilizado seja válido.\n    \n\n**Estrutura de cada item na lista:**\n\n- `id`: Identificador único da categoria.\n    \n- `nome_categoria`: Descrição da categoria.\n    \n- `ativo`: Indica se a categoria está ativa (true) ou inativa (false)."
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 201 || status === 200) {\r",
+                  "    pm.test(\"Categoria criada com sucesso\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([200, 201]);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Retorna a mensagem de sucesso padrão do Admin\", function () {\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Teste de validação: Dados inválidos\", function () {\r",
+                  "        pm.response.to.have.status(status);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 403) {\r",
+                  "    pm.test(\"Erro: Apenas administradores podem criar categorias\", function () {\r",
+                  "        pm.response.to.have.status(403);\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nome_categoria\": \"Teste\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/categorias",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categorias"
+              ]
+            },
+            "description": "### Criar Categoria\n\nPermite ao Administrador cadastrar uma nova categoria de serviço no sistema (ex: Estética, Massagem, Barba).\n\n**Tipo de Requisição:** POST (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros do Body (JSON):**\n\n- `nome_categoria` (String, Obrigatório): O nome da nova categoria. Limite máximo de 255 caracteres.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso:** Enviar um nome válido. Esperado: `Status 201 Created` e a mensagem \"Operação realizada com sucesso!\".\n    \n2. **Campo Vazio:** Tentar criar sem o nome. Esperado: Erro de validação `Status 400`.\n    \n3. **Acesso Negado:** Tentar enviar o pedido com um token de Cliente ou sem token. Esperado: `Status 403 Forbidden` ou `401 Unauthorized`."
+          },
+          "response": []
+        },
+        {
+          "name": "Editar Categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Categoria editada/inativada com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "} else if (status === 409) {\r",
+                  "    pm.test(\"Validação: Nome de categoria já existe\", function () {\r",
+                  "        pm.response.to.have.status(409);\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Categoria não encontrada\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"ativo\": false\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/categorias/:id",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categorias",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "4",
+                  "description": "ID da categoria. Verifique a lista de categorias para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Editar Categoria (Ativar/Inativar)\n\nPermite ao Administrador atualizar o nome de uma categoria ou alterar seu status de exibição (ativar/inativar).\n\n**Nota de Arquitetura:** Este endpoint substitui a antiga rota de exclusão (DELETE). Categorias não são mais apagadas do banco de dados para preservar a integridade dos serviços, agendamentos e histórico financeiro. Utilize o campo `ativo` para ocultá-las do cliente.\n\n**Tipo de Requisição:** PUT (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id`: ID da categoria que será editada.\n    \n\n**Parâmetros do Body (JSON):**\n\n- `nome_categoria` (String, Opcional): Novo nome para a categoria.\n    \n- `ativo` (Booleano, Opcional): Envie `true` para deixar a categoria visível ou `false` para inativá-la e ocultá-la (junto com seus serviços) das opções de agendamento.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso Geral:** Alterar o nome ou o status. Esperado: `Status 200 OK`.\n    \n2. **Inativação:** Enviar apenas `{ \"ativo\": false }`. Esperado: `Status 200 OK`.\n    \n3. **Nome Duplicado:** Tentar renomear para uma categoria que já existe. Esperado: `Status 409 Conflict`."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Serviços",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Serviços listados com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"O retorno é uma lista de serviços\", function () {\r",
+                  "        pm.expect(jsonData).to.be.an('array');\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Respeita o limite de paginação (máx 50 itens)\", function () {\r",
+                  "        pm.expect(jsonData.length).to.be.at.most(50);\r",
+                  "    });\r",
+                  "\r",
+                  "    if (jsonData.length > 0) {\r",
+                  "        pm.test(\"Estrutura do serviço contém Nome, Duração e Valor\", function () {\r",
+                  "            pm.expect(jsonData[0]).to.have.property('nome_servico');\r",
+                  "            pm.expect(jsonData[0]).to.have.property('duracao_minutos');\r",
+                  "            pm.expect(jsonData[0]).to.have.property('valor');\r",
+                  "        });\r",
+                  "    }\r",
+                  "\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Erro: Sem permissão para visualizar serviços\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado ao carregar a lista\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/admin/servicos",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "servicos"
+              ]
+            },
+            "description": "### Listar Serviços\n\nRetorna a lista de todos os serviços cadastrados no estúdio (ex: Manicure, Corte de Cabelo, Limpeza de Pele).\n\n**Tipo de Requisição:** GET (Protegida - Acesso restrito a ADMIN)\n\n**Regras de Negócio:**\n\n- **Acesso:** Disponível apenas para usuários com perfil ADMIN.\n    \n- **Paginação:** A lista é limitada a 50 itens por página para garantir a rapidez do carregamento.\n    \n- **Uso:** Fundamental para obter os IDs dos serviços que serão usados nos agendamentos e na gestão financeira.\n    \n\n**Estrutura dos Dados:**\n\n- `id`: Identificador único do serviço.\n    \n- `id_categoria`: ID da categoria à qual o serviço pertence.\n    \n- `nome_servico`: Nome do procedimento.\n    \n- `duracao_minutos`: Tempo estimado de atendimento.\n    \n- `valor`: Preço do serviço (padrão R$ 00,00).\n    \n- `ativo`: Indica se o serviço está ativo (true) ou inativo (false)."
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Serviço",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 201 || status === 200) {\r",
+                  "    pm.test(\"Serviço criado com sucesso\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([200, 201]);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Retorna a mensagem de sucesso padrão do Admin\", function () {\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 400 || status === 404 || status === 422) {\r",
+                  "    pm.test(\"Teste de validação: Dados incorretos ou Categoria não encontrada\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 404, 422]);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Erro: Acesso negado (Apenas Administradores)\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado ao criar serviço\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id_categoria\": 6,\r\n  \"nome_servico\": \"Teste\",\r\n  \"duracao_minutos\": 120,\r\n  \"valor\": \"1000.00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/servicos",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "servicos"
+              ]
+            },
+            "description": "### Criar Serviço\n\nPermite ao Administrador cadastrar um novo serviço atrelado a uma categoria existente.\n\n**Tipo de Requisição:** POST (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros do Body (JSON):**\n\n- `id_categoria` (Inteiro, Obrigatório): O ID da categoria à qual este serviço pertence.\n    \n- `nome_servico` (String, Obrigatório): O nome do procedimento (ex: Manicure).\n    \n- `duracao_minutos` (Inteiro, Obrigatório): O tempo estimado de atendimento em minutos.\n    \n- `valor` (String, Obrigatório): O preço do serviço no formato monetário.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso:** Enviar todos os dados corretamente com um `id_categoria` válido. Esperado: `Status 201 Created` e a mensagem \"Operação realizada com sucesso!\".\n    \n2. **Categoria Inexistente:** Enviar um `id_categoria` que não existe. Esperado: Erro de validação `Status 400` ou `404`.\n    \n3. **Acesso Negado:** Tentar realizar a criação com o token de um cliente. Esperado: `Status 403 Forbidden`."
+          },
+          "response": []
+        },
+        {
+          "name": "Editar Serviço",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Serviço atualizado/inativado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Validação: Dados de entrada inválidos\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Serviço não encontrado\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"ativo\": false\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/servicos/:id",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "servicos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "6",
+                  "description": "ID do serviço. Verifique a lista de serviços para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Editar Serviço (Ativar/Inativar)\n\nPermite ao Administrador atualizar os dados de um serviço, movê-lo para outra categoria ou alterar seu status de exibição.\n\n**Nota de Arquitetura:** A exclusão permanente de serviços foi descontinuada para proteger as métricas de faturamento e auditoria. Para \"excluir\" um serviço da visão do cliente, basta alterar a flag `ativo` para `false`.\n\n**Tipo de Requisição:** PUT (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id`: ID do serviço que será editado.\n    \n\n**Parâmetros do Body (JSON):**\n\n- `id_categoria` (Inteiro, Opcional): Novo ID da categoria, caso o serviço mude de família.\n    \n- `nome_servico` (String, Opcional): Novo nome do procedimento.\n    \n- `duracao_minutos` (Inteiro, Opcional): Novo tempo de atendimento.\n    \n- `valor` (Decimal, Opcional): Novo preço.\n    \n- `ativo` (Booleano, Opcional): `true` para exibir no aplicativo, `false` para ocultar.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso (Inativar/Ativar):** Alterar apenas o campo `ativo`. Esperado: `Status 200 OK`.\n    \n2. **Sucesso (Geral):** Alterar dados em bloco. Esperado: `Status 200 OK`."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Funcionários",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Listagem recuperada com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Retorno obedece à estrutura de paginação\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('items');\r",
+                  "        pm.expect(jsonData).to.have.property('total');\r",
+                  "        pm.expect(jsonData).to.have.property('pages');\r",
+                  "        pm.expect(jsonData).to.have.property('current_page');\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"'items' é um array\", function () {\r",
+                  "        pm.expect(jsonData.items).to.be.an('array');\r",
+                  "    });\r",
+                  "\r",
+                  "    // Se houver funcionários cadastrados, testa a estrutura do primeiro item\r",
+                  "    if (jsonData.items.length > 0) {\r",
+                  "        pm.test(\"Itens possuem os dados do usuário e de categorias cruzados\", function () {\r",
+                  "            const func = jsonData.items[0];\r",
+                  "            pm.expect(func).to.have.property('id');\r",
+                  "            pm.expect(func).to.have.property('nome_completo');\r",
+                  "            pm.expect(func).to.have.property('email');\r",
+                  "            pm.expect(func).to.have.property('ativo');\r",
+                  "            pm.expect(func).to.have.property('categorias').that.is.an('array');\r",
+                  "        });\r",
+                  "    }\r",
+                  "\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro: Falta de token de autenticação (401)\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 403) {\r",
+                  "    pm.test(\"Erro: Acesso negado, exclusivo para Administradores (403)\", function () {\r",
+                  "        pm.response.to.have.status(403);\r",
+                  "        pm.expect(jsonData.message).to.eql(\"Acesso restrito a administradores.\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/admin/funcionarios",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios"
+              ]
+            },
+            "description": "### Listar Funcionários\n\nRetorna uma lista paginada de todos os funcionários cadastrados no sistema, incluindo seus dados de perfil (nome, e-mail, telefone), status (ativo/inativo) e as categorias de serviços que estão aptos a realizar.\n\n**Tipo de Requisição:** GET (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros de URL (Query Params - Opcionais):**\n\n- `page` (Inteiro): Número da página que deseja visualizar. O padrão é 1. O sistema retorna até 50 registros por página.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno inclui os metadados de paginação e o array `items` contendo a lista de profissionais.\n\n- `total`: Total de funcionários cadastrados.\n    \n- `pages`: Total de páginas disponíveis.\n    \n- `current_page`: Página atual.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso (Admin):** Enviar um token de Administrador válido. Esperado: `Status 200 OK` e o JSON com a estrutura de paginação.\n    \n2. **Acesso Negado (Cliente/Funcionário):** Tentar acessar a rota utilizando o token de um cliente comum ou de outro funcionário. Esperado: `Status 403 Forbidden` e a mensagem \"Acesso restrito a administradores.\".\n    \n3. **Não Autenticado:** Tentar acessar sem enviar um token no Header. Esperado: `Status 401 Unauthorized`."
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Funcionário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 201) {\r",
+                  "    pm.test(\"Funcionário criado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(201);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Retorna a mensagem de sucesso padrão\", function () {\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 409) {\r",
+                  "    pm.test(\"Regra de Negócio: E-mail já cadastrado\", function () {\r",
+                  "        pm.response.to.have.status(409);\r",
+                  "        pm.expect(jsonData.message).to.include(\"já está cadastrado em nosso sistema\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Validação de Dados (Schema): Erro detectado\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "        pm.expect(jsonData).to.have.property('errors');\r",
+                  "    });\r",
+                  "\r",
+                  "    // Teste extra para identificar se o erro foi de senha ou telefone (ajuda muito o front-end)\r",
+                  "    if (jsonData.errors) {\r",
+                  "        if (jsonData.errors.confirmar_senha) {\r",
+                  "            pm.test(\"Detalhe: As senhas não coincidem\", function() { return true; });\r",
+                  "        }\r",
+                  "        if (jsonData.errors.telefone) {\r",
+                  "            pm.test(\"Detalhe: Telefone fora do formato (XX) XXXXX-XXXX\", function() { return true; });\r",
+                  "        }\r",
+                  "        if (jsonData.errors.senha) {\r",
+                  "            pm.test(\"Detalhe: Senha fraca (Mínimo 8 chars, letras, números e maiúscula)\", function() { return true; });\r",
+                  "        }\r",
+                  "    }\r",
+                  "\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Erro: Acesso negado (Apenas Administradores)\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "  {\r\n    \"ids_categorias\": [1],\r\n    \"nome_completo\": \"Ricardo Oliveira\",\r\n    \"email\": \"ricardooliveira@teste.com\",\r\n    \"telefone\": \"(11) 91234-5678\",\r\n    \"senha\": \"Senha123\",\r\n    \"confirmar_senha\": \"Senha123\"\r\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/funcionarios",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios"
+              ]
+            },
+            "description": "### Criar Funcionário\n\nPermite ao Administrador cadastrar um novo profissional na equipe. O sistema cria automaticamente a credencial de acesso do funcionário e o vincula às suas especialidades (categorias de serviço).\n\n**Nota de Arquitetura:** O funcionário recém-criado já nasce com o status `ativo = true` no banco de dados e com a permissão (role) de `FUNCIONARIO`.\n\n**Tipo de Requisição:** POST (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros do Body (JSON):**\n\n- `nome_completo` (String, Obrigatório): Nome do profissional.\n    \n- `email` (String, Obrigatório): E-mail que será usado para login. Deve ser único no sistema.\n    \n- `telefone` (String, Obrigatório): Formato exigido: `(XX) XXXXX-XXXX`.\n    \n- `senha` (String, Obrigatório): Mínimo 8 caracteres, contendo letras, números e ao menos uma maiúscula.\n    \n- `confirmar_senha` (String, Obrigatório): Deve ser idêntica ao campo `senha`.\n    \n- `ids_categorias` (Array de Inteiros, Opcional): Lista com os IDs das categorias de serviço que o funcionário está apto a realizar (Ex: `[1, 3, 4]`).\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso:** Enviar todos os dados válidos e um array de `ids_categorias`. Esperado: `Status 201 Created` e a mensagem \"Operação realizada com sucesso!\".\n    \n2. **E-mail Duplicado:** Tentar cadastrar um e-mail que já existe no banco. Esperado: `Status 409 Conflict` e a mensagem \"Este e-mail já está cadastrado em nosso sistema...\".\n    \n3. **Senhas Diferentes:** Enviar `senha` diferente de `confirmar_senha`. Esperado: `Status 400 Bad Request`.\n    \n4. **Telefone Inválido:** Enviar o telefone fora do formato. Esperado: `Status 400 Bad Request`."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Listagem de clientes recuperada com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Retorno obedece à estrutura de paginação\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('items');\r",
+                  "        pm.expect(jsonData).to.have.property('total');\r",
+                  "        pm.expect(jsonData).to.have.property('pages');\r",
+                  "        pm.expect(jsonData).to.have.property('current_page');\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"'items' é um array\", function () {\r",
+                  "        pm.expect(jsonData.items).to.be.an('array');\r",
+                  "    });\r",
+                  "\r",
+                  "    // Valida o conteúdo se houver algum cliente cadastrado\r",
+                  "    if (jsonData.items.length > 0) {\r",
+                  "        pm.test(\"Clientes listados possuem os campos de perfil e contato\", function () {\r",
+                  "            const cliente = jsonData.items[0];\r",
+                  "            pm.expect(cliente).to.have.property('id');\r",
+                  "            pm.expect(cliente).to.have.property('nome_completo');\r",
+                  "            pm.expect(cliente).to.have.property('email');\r",
+                  "            pm.expect(cliente).to.have.property('telefone');\r",
+                  "        });\r",
+                  "        \r",
+                  "        pm.test(\"Filtro aplicado corretamente (Apenas role CLIENTE)\", function () {\r",
+                  "             const cliente = jsonData.items[0];\r",
+                  "             // Opcional: Se a role estiver sendo retornada no dump_only, validamos ela\r",
+                  "             if(cliente.role) {\r",
+                  "                 pm.expect(cliente.role).to.include(\"CLIENTE\");\r",
+                  "             }\r",
+                  "        });\r",
+                  "    }\r",
+                  "\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro: Falta de token de autenticação (401)\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 403) {\r",
+                  "    pm.test(\"Erro: Acesso negado, exclusivo para Administradores (403)\", function () {\r",
+                  "        pm.response.to.have.status(403);\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado ao listar clientes\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/admin/clientes",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "clientes"
+              ]
+            },
+            "description": "### Listar Clientes\n\nRetorna uma lista paginada com todos os usuários cadastrados no sistema que possuem o perfil de cliente.\n\n**Nota de Arquitetura:** O sistema filtra automaticamente os registros da tabela de Usuários para retornar apenas aqueles cuja permissão (role) contenha a tag `CLIENTE`.\n\n**Tipo de Requisição:** GET (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros de URL (Query Params - Opcionais):**\n\n- `page` (Inteiro): Número da página desejada para navegação. O padrão é 1 (limite de 50 registros por página).\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno obedece ao padrão de paginação do sistema:\n\n- `total`: Quantidade total de clientes cadastrados.\n    \n- `pages`: Total de páginas calculadas.\n    \n- `current_page`: Página atual da visualização.\n    \n- `items`: Array contendo os dados dos clientes (id, nome_completo, email, telefone, data_criacao).\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso (Admin):** Enviar um token de Administrador. Esperado: `Status 200 OK` e o JSON com a lista.\n    \n2. **Acesso Restrito:** Tentar acessar utilizando o token de um funcionário comum ou do próprio cliente. Esperado: `Status 403 Forbidden`."
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Cliente (pelo admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 201) {\r",
+                  "    pm.test(\"Cliente cadastrado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(201);\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 409) {\r",
+                  "    pm.test(\"Regra de Negócio: Usuário já cadastrado\", function () {\r",
+                  "        pm.response.to.have.status(409);\r",
+                  "        pm.expect(jsonData.message).to.include(\"já está cadastrado\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Erro de Validação: Verifique os campos enviados\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "    });\r",
+                  "\r",
+                  "    if (jsonData.errors) {\r",
+                  "        if (jsonData.errors.confirmar_senha) {\r",
+                  "            pm.test(\"Detalhe: As senhas não coincidem\", function() { return true; });\r",
+                  "        }\r",
+                  "        if (jsonData.errors.telefone) {\r",
+                  "            pm.test(\"Detalhe: Formato de telefone inválido\", function() { return true; });\r",
+                  "        }\r",
+                  "    }\r",
+                  "\r",
+                  "} else if (status === 403) {\r",
+                  "    pm.test(\"Erro: Acesso negado (Apenas Administradores)\", function () {\r",
+                  "        pm.response.to.have.status(403);\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nome_completo\": \"Livia Fernandes\",\r\n    \"email\": \"liviafernandes@teste.com\",\r\n    \"telefone\": \"(11) 91234-4321\",\r\n    \"senha\": \"Senha123\",\r\n    \"confirmar_senha\": \"Senha123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/clientes",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "clientes"
+              ]
+            },
+            "description": "### Criar Cliente (Admin)\n\nPermite ao Administrador cadastrar manualmente um novo cliente no sistema.\n\n**Nota de Arquitetura:** Ao contrário do autocadastro, este endpoint é protegido e exige privilégios de Administrador. O sistema atribui automaticamente a permissão (role) `CLIENTE` ao novo usuário.\n\n**Tipo de Requisição:** POST (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros do Body (JSON):**\n\n- `nome_completo` (String, Obrigatório): Nome do cliente.\n    \n- `email` (String, Obrigatório): E-mail único para acesso.\n    \n- `telefone` (String, Obrigatório): Formato exigido: `(XX) XXXXX-XXXX`.\n    \n- `senha` (String, Obrigatório): Mínimo 8 caracteres (letras, números e uma maiúscula).\n    \n- `confirmar_senha` (String, Obrigatório): Deve ser idêntica ao campo `senha`.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso:** Cadastro realizado com dados válidos. Esperado: `Status 201 Created`.\n    \n2. **E-mail Duplicado:** Tentar cadastrar um e-mail já existente. Esperado: `Status 409 Conflict`.\n    \n3. **Erro de Validação:** Enviar senhas divergentes ou telefone fora do padrão. Esperado: `Status 400 Bad Request`."
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Horário de Trabalho",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Horários de trabalho configurados com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Validação: Erro na estrutura do payload\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "    });\r",
+                  "\r",
+                  "    if (jsonData.errors) {\r",
+                  "        pm.test(\"Detalhe: Verifique o array de objetos. Os dias vão de 0 a 6 e as horas usam o padrão HH:MM.\", function() { \r",
+                  "            return true; \r",
+                  "        });\r",
+                  "    }\r",
+                  "\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Funcionário não encontrado\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Erro: Acesso negado (Apenas Administradores)\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado ao configurar horários\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\"dia_semana\": 4, \"hora_inicio\": \"09:00\", \"hora_fim\": \"13:00\"},\r\n  {\"dia_semana\": 4, \"hora_inicio\": \"14:00\", \"hora_fim\": \"18:00\"},\r\n  {\"dia_semana\": 5, \"hora_inicio\": \"09:00\", \"hora_fim\": \"13:00\"},\r\n  {\"dia_semana\": 5, \"hora_inicio\": \"14:00\", \"hora_fim\": \"18:00\"}  \r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/funcionarios/:id/horarios",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios",
+                ":id",
+                "horarios"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "3",
+                  "description": "ID do funcionário. Verifique a lista de funcionários para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Configurar Horários de Trabalho\n\nPermite ao Administrador definir ou atualizar a grade de horários de atendimento de um funcionário específico.\n\n**Nota de Arquitetura:** Esta requisição substitui completamente a grade anterior. O sistema apaga os registros antigos e cadastra os novos horários enviados no payload.\n\n**Tipo de Requisição:** POST (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id`: ID do funcionário que receberá a grade de horários.\n    \n\n**Parâmetros do Body (JSON - Array de Objetos):**  \nO payload deve ser uma lista contendo as regras de horário.\n\n- `dia_semana` (Inteiro, Obrigatório): Representa o dia, variando de 0 a 6 (0 = Domingo, 1 = Segunda, ... 6 = Sábado).\n    \n- `hora_inicio` (String, Obrigatório): Horário de início do turno no formato `HH:MM`.\n    \n- `hora_fim` (String, Obrigatório): Horário de término do turno no formato `HH:MM`.\n    \n\n**Exemplo de Body:**\n\n\\[  \n{ \"dia_semana\": 1, \"hora_inicio\": \"09:00\", \"hora_fim\": \"18:00\" },  \n{ \"dia_semana\": 2, \"hora_inicio\": \"09:00\", \"hora_fim\": \"18:00\" }  \n\\]\n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso:** Enviar um array válido de horários. Esperado: `Status 200 OK` (Nota: embora seja POST, retorna 200 pois atua como atualização).\n    \n2. **Erro de Formato:** Enviar hora fora do padrão (ex: `9:0`) ou `dia_semana` maior que 6. Esperado: `Status 400 Bad Request`.\n    \n3. **Funcionário Inexistente:** Enviar dados para um ID de funcionário que não existe. Esperado: `Status 404 Not Found`."
+          },
+          "response": []
+        },
+        {
+          "name": "Editar Cliente (pelo admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Dados do cliente atualizados com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "        pm.expect(jsonData.mensagem).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 403) {\r",
+                  "    pm.test(\"Trava de Segurança: ID não pertence a um Cliente\", function () {\r",
+                  "        pm.response.to.have.status(403);\r",
+                  "        // Garante que o Admin não edite funcionários por esta rota\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 409) {\r",
+                  "    pm.test(\"Regra de Negócio: E-mail em uso por outro usuário\", function () {\r",
+                  "        pm.response.to.have.status(409);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Validação de Dados (Schema): Entrada inválida\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "    });\r",
+                  "\r",
+                  "    if (jsonData.errors) {\r",
+                  "        if (jsonData.errors.confirmar_senha) {\r",
+                  "            pm.test(\"Detalhe: As senhas não coincidem\", function() { return true; });\r",
+                  "        }\r",
+                  "        if (jsonData.errors.telefone) {\r",
+                  "            pm.test(\"Detalhe: Telefone fora do formato exigido\", function() { return true; });\r",
+                  "        }\r",
+                  "    }\r",
+                  "\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Cliente não encontrado no banco\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro: Falha de autenticação (Token inválido ou ausente)\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nome_completo\": \"Livia Fernandes Lima\",\r\n  \"telefone\": \"(11) 97453-9475\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/clientes/:id",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "clientes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "8",
+                  "description": "ID do cliente. Verifique a lista de clientes para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Editar Cliente (Admin)\n\nPermite ao Administrador atualizar os dados de perfil e contato de um cliente, bem como redefinir sua senha de acesso.\n\n**Nota de Segurança (Role Validation):** Esta rota é exclusiva para a edição de clientes. Se o administrador tentar enviar o ID de um usuário que seja `FUNCIONARIO` ou `ADMIN`, o sistema bloqueará a requisição para evitar escalonamento de privilégios ou alterações acidentais de equipe.\n\n**Tipo de Requisição:** PUT (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id`: ID do usuário (cliente) que será editado.\n    \n\n**Parâmetros do Body (JSON - Todos Opcionais):**\n\n- `nome_completo` (String): Novo nome do cliente.\n    \n- `email` (String): Novo e-mail. O sistema garante a unicidade e barrará se já existir.\n    \n- `telefone` (String): Novo telefone no formato `(XX) XXXXX-XXXX`.\n    \n- `senha` (String): Nova senha para o cliente (mínimo 8 caracteres, letras, números e maiúscula).\n    \n- `confirmar_senha` (String): Obrigatório enviar caso o campo `senha` seja preenchido. As duas devem ser idênticas.\n    \n\n**Cenários de Teste Recomendados:**\n\n1. **Sucesso (Dados Básicos):** Atualizar nome/telefone/email. Esperado: `Status 200 OK`.\n    \n2. **Sucesso (Senha):** Enviar nova senha com confirmação correta. Esperado: `Status 200 OK`.\n    \n3. **Trava de Segurança (ID não é cliente):** Tentar usar o ID de um funcionário. Esperado: `Status 403 Forbidden`.\n    \n4. **E-mail Duplicado:** Mudar para um e-mail já em uso. Esperado: `Status 409 Conflict`.\n    \n5. **Erro de Validação:** Enviar senhas diferentes ou formato inválido. Esperado: `Status 400 Bad Request`."
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Detalhes Funcionário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Detalhes do funcionário recuperados com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Retorno contém a estrutura de dados completa (Usuário + Funcionário + Categorias)\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('id');\r",
+                  "        pm.expect(jsonData).to.have.property('id_usuario');\r",
+                  "        pm.expect(jsonData).to.have.property('nome_completo');\r",
+                  "        pm.expect(jsonData).to.have.property('email');\r",
+                  "        pm.expect(jsonData).to.have.property('telefone');\r",
+                  "        pm.expect(jsonData).to.have.property('ativo');\r",
+                  "        pm.expect(jsonData).to.have.property('categorias').that.is.an('array');\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Funcionário não encontrado no sistema\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Erro: Acesso restrito a administradores\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/admin/funcionarios/:id",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2",
+                  "description": "ID do funcionário. Verifique a lista de funcionários para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Ver Detalhes do Funcionário\n\nPermite ao Administrador acessar os dados específicos de um profissional, retornando suas informações de perfil cruzadas com a lista de categorias que ele atende.\n\n**Tipo de Requisição:** GET (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id`: ID do funcionário que será consultado.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno apresenta os dados de identificação do usuário vinculados ao seu registro de funcionário:\n\n- `id`: Identificador único do funcionário.\n    \n- `id_usuario`: ID de referência na tabela global de usuários.\n    \n- `nome_completo`: Nome registrado no sistema.\n    \n- `email`: Endereço de e-mail utilizado para login.\n    \n- `telefone`: Telefone com a máscara (XX) XXXXX-XXXX.\n    \n- `ativo`: Status atual do profissional no estúdio (true/false).\n    \n- `categorias`: Lista contendo os objetos de especialidade (id e nome_categoria).\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso:** Consultar um ID válido de funcionário. Esperado: Status 200 OK e o JSON com a estrutura detalhada acima.\n    \n- **Não Encontrado:** Consultar um ID de um usuário inexistente ou que não possua vínculo de funcionário. Esperado: Status 404 Not Found.\n    \n- **Acesso Negado:** Tentar realizar a consulta sem token ou com perfil de cliente. Esperado: Status 403 Forbidden."
+          },
+          "response": []
+        },
+        {
+          "name": "Editar Funcionário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Dados do funcionário atualizados com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "        pm.expect(jsonData.mensagem || jsonData.message).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "} else if (status === 409) {\r",
+                  "    pm.test(\"Regra de Negócio: E-mail já em uso por outro usuário\", function () {\r",
+                  "        pm.response.to.have.status(409);\r",
+                  "    });\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Validação de Dados: Verifique máscara do telefone, força da senha ou se as senhas coincidem\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "        pm.expect(jsonData).to.have.property('errors');\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Funcionário não encontrado no banco de dados\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Trava de Segurança: Acesso negado para não administradores\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"ids_categorias\": [1, 2]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/funcionarios/:id",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2",
+                  "description": "ID do funcionário. Verifique a lista de funcionários para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Editar Funcionário\n\nPermite ao Administrador editar todos os dados dos perfis existentes na equipe, incluindo a alteração manual de senha para auxiliar na recuperação de acessos. O sistema também permite vincular as categorias de serviços que eles atendem.\n\n**Tipo de Requisição:** PUT (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id`: ID do funcionário que será editado.\n    \n\n**Parâmetros do Body (JSON - Todos Opcionais):**\n\n- `nome_completo` (String): Novo nome do profissional com limite máximo de 255 caracteres.\n    \n- `email` (String): Novo e-mail. O sistema valida se o e-mail é único e barrará a operação se já pertencer a outro usuário.\n    \n- `telefone` (String): Campo com aplicação de máscara de formatação obrigatória no padrão `(XX) XXXXX-XXXX`.\n    \n- `ativo` (Booleano): Permite ativar ou inativar o funcionário no sistema, controlando sua disponibilidade.\n    \n- `ids_categorias` (Array de Inteiros): Lista com os IDs das categorias de serviço vinculadas ao funcionário via checkbox.\n    \n- `nova_senha` (String): Nova senha contendo no mínimo 8 caracteres, incluindo obrigatoriamente letras, números e pelo menos uma letra maiúscula.\n    \n- `confirmar_nova_senha` (String): A interface deve exigir o preenchimento deste campo para confirmar a alteração e os valores devem coincidir exatamente.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno para uma edição bem-sucedida é uma mensagem de confirmação padronizada do sistema:\n\n- `message`: \"Operação realizada com sucesso!\"\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Atualizar dados de perfil e vínculos de categoria. Esperado: Status 200 OK e a mensagem de sucesso.\n    \n- **E-mail Duplicado:** Tentar usar um e-mail já cadastrado para outro usuário. Esperado: Status 409 Conflict.\n    \n- **Validação Inválida:** Enviar telefone sem máscara, senhas divergentes ou senha fraca. Esperado: Status 400 Bad Request."
+          },
+          "response": []
+        },
+        {
+          "name": "Bloquear Horário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 201) {\r",
+                  "    pm.test(\"Bloqueio de agenda registrado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(201);\r",
+                  "        pm.expect(jsonData.mensagem || jsonData.message).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Erro de Validação: A data precisa estar obrigatoriamente no padrão DD/MM/AAAA\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "        if (jsonData.errors) {\r",
+                  "            pm.expect(jsonData.errors).to.have.property('data_bloqueio');\r",
+                  "        }\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Funcionário não encontrado no sistema\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Trava de Segurança: Acesso negado para não administradores\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "  {\r\n    \"data_bloqueio\": \"25/4/2026\", \r\n    \"motivo\": \"Folga.\"\r\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/admin/funcionarios/:id/bloqueios",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "funcionarios",
+                ":id",
+                "bloqueios"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2",
+                  "description": "ID do funcionário. Verifique a lista de funcionários para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Adicionar Bloqueio de Agenda\n\nPermite ao Administrador inserir bloqueios de agenda (férias, licenças ou feriados) para uma data selecionada em relação a um funcionário específico. Isso garante que o motor de agendamento filtre a escala e não considere horários disponíveis para o cliente nestes dias bloqueados.\n\n**Tipo de Requisição:** POST (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id`: ID do funcionário que receberá o bloqueio em sua agenda.\n    \n\n**Parâmetros do Body (JSON):**\n\n- `data_bloqueio` (String, Obrigatório): Data em que a agenda ficará bloqueada. Deve seguir obrigatoriamente o padrão de formatação `DD/MM/AAAA`.\n    \n- `motivo` (String, Opcional): Descrição textual do motivo do bloqueio para controle gerencial.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno para um bloqueio registrado com sucesso é a mensagem padrão do sistema:\n\n- `message`: \"Operação realizada com sucesso!\"\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Enviar uma data válida no formato correto. Esperado: Status 201 Created e a mensagem de sucesso.\n    \n- **Formato Inválido:** Enviar a data fora do padrão (ex: formato americano `YYYY-MM-DD`). Esperado: Status 400 Bad Request.\n    \n- **Funcionário Inexistente:** Tentar inserir um bloqueio para um ID de funcionário que não existe no banco de dados. Esperado: Status 404 Not Found."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Agendamentos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Visão global de agendamentos carregada com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "    \r",
+                  "    pm.test(\"Estrutura de paginação e metadados estão presentes\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('items').that.is.an('array');\r",
+                  "        pm.expect(jsonData).to.have.property('total');\r",
+                  "        pm.expect(jsonData).to.have.property('pages');\r",
+                  "        pm.expect(jsonData).to.have.property('current_page');\r",
+                  "    });\r",
+                  "    \r",
+                  "    pm.test(\"Respeita o limite de paginação de 50 itens\", function () {\r",
+                  "        pm.expect(jsonData.items.length).to.be.at.most(50);\r",
+                  "    });\r",
+                  "    \r",
+                  "    if (jsonData.items.length > 0) {\r",
+                  "        pm.test(\"Os itens retornam valores formatados (data e moeda)\", function () {\r",
+                  "            const agendamento = jsonData.items[0];\r",
+                  "            pm.expect(agendamento).to.have.property('data').that.matches(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);\r",
+                  "            pm.expect(agendamento).to.have.property('valor').that.includes(\"R$\");\r",
+                  "            pm.expect(agendamento).to.have.property('horario');\r",
+                  "        });\r",
+                  "    }\r",
+                  "} else if (status === 400) {\r",
+                  "    pm.test(\"Erro de Validação: O sistema barrou o formato de data inválido\", function () {\r",
+                  "        pm.response.to.have.status(400);\r",
+                  "        pm.expect(jsonData.message).to.include(\"Formato de data inválido\");\r",
+                  "    });\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Segurança: Acesso negado para usuários sem permissão de Administrador\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/admin/agendamentos",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "agendamentos"
+              ]
+            },
+            "description": "### Listar Agendamentos (Visão Global)\n\nPermite ao Administrador acessar a grade completa de todos os agendamentos do estúdio, garantindo controle total da operação. Esta funcionalidade é essencial para a gestão operacional e permite uma visão macro de todos os atendimentos marcados.\n\n**Tipo de Requisição:** GET (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros de URL (Query Params - Opcionais):**\n\n- `page` (Inteiro): Número da página para navegação. O sistema aplica uma paginação fixa de 50 itens por página para otimizar a performance.\n    \n- `status` (String): Filtra os resultados pelo status atual (AGENDADO, CONFIRMADO, CANCELADO, REALIZADO, AUSENTE).\n    \n- `id_cliente` (Inteiro): Filtra a grade buscando agendamentos de um cliente específico.\n    \n- `id_funcionario` (Inteiro): Filtra buscando compromissos vinculados a um profissional específico.\n    \n- `id_servico` / `id_categoria` (Inteiro): Permite a filtragem por tipo de procedimento ou família de serviço.\n    \n- `data_atendimento` (String): Filtra pela data exata do atendimento. Deve seguir obrigatoriamente o padrão `DD/MM/AAAA`.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO sistema retorna um objeto com metadados de paginação e o array de registros:\n\n- `total`: Quantidade total de registros encontrados no banco.\n    \n- `pages`: Total de páginas calculadas.\n    \n- `current_page`: Página que está sendo visualizada no momento.\n    \n- `items`: Lista de agendamentos, onde cada objeto contém `id`, `data`, `horario` (intervalo), `servico`, `cliente`, `funcionario`, `valor` (já formatado em R$) e `status`.\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Realizar a consulta sem filtros para listar os registros mais recentes. Esperado: Status 200 OK e estrutura de paginação correta.\n    \n- **Filtro Combinado:** Testar a busca filtrando por um profissional e uma data específica. Esperado: Status 200 OK.\n    \n- **Erro de Formato:** Tentar filtrar utilizando uma data fora do padrão (ex: MM-DD-AAAA). Esperado: Status 400 Bad Request e mensagem explicativa."
+          },
+          "response": []
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Módulo 3 - Agendamentos",
+      "item": [
+        {
+          "name": "Consultar Disponibilidade",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Disponibilidade consultada com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "    \r",
+                  "    pm.test(\"Retorno é uma lista de profissionais disponíveis com seus slots\", function () {\r",
+                  "        pm.expect(jsonData).to.be.an('array');\r",
+                  "        \r",
+                  "        if (jsonData.length > 0) {\r",
+                  "            const profissional = jsonData[0];\r",
+                  "            pm.expect(profissional).to.have.property('id_funcionario');\r",
+                  "            pm.expect(profissional).to.have.property('nome_funcionario');\r",
+                  "            pm.expect(profissional).to.have.property('slots').that.is.an('array');\r",
+                  "            \r",
+                  "            if (profissional.slots.length > 0) {\r",
+                  "                pm.expect(profissional.slots[0]).to.have.property('hora_inicio');\r",
+                  "                pm.expect(profissional.slots[0]).to.have.property('hora_fim');\r",
+                  "            }\r",
+                  "        }\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Regra de Negócio: Sem horários disponíveis ou profissional não encontrado\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "        if (jsonData.message) {\r",
+                  "            pm.expect(jsonData.message).to.be.oneOf([\r",
+                  "                \"Não há horários disponíveis para esta data. Por favor, selecione outro dia.\",\r",
+                  "                \"Nenhum profissional disponível para este serviço.\"\r",
+                  "            ]);\r",
+                  "        }\r",
+                  "    });\r",
+                  "} else if (status === 400) {\r",
+                  "    pm.test(\"Erro de Validação: Parâmetros obrigatórios ausentes ou data inválida\", function () {\r",
+                  "        pm.response.to.have.status(400);\r",
+                  "    });\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro: Não autorizado (Token ausente ou inválido)\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/agendamentos/disponibilidade?id_servico=2&data=24/04/2026",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "agendamentos",
+                "disponibilidade"
+              ],
+              "query": [
+                {
+                  "key": "id_servico",
+                  "value": "2"
+                },
+                {
+                  "key": "data",
+                  "value": "24/04/2026"
+                }
+              ]
+            },
+            "description": "### Consultar Disponibilidade\n\nRetorna os horários de atendimento livres para uma data e serviço específicos, cruzando as agendas de todos os profissionais capacitados para realizá-lo.\n\n**Tipo de Requisição:** GET (Protegida por Token)\n\n**Parâmetros da URL (Query Params - Obrigatórios):**\n\n- `id_servico` (Inteiro): ID do serviço que o cliente deseja agendar.\n    \n- `data` (String): Data de interesse para o atendimento. Deve seguir obrigatoriamente o padrão de formatação `DD/MM/AAAA`.\n    \n\n**Regras de Negócio e Arquitetura:**\n\n- O motor só exibe horários que respeitem a antecedência mínima de 3 horas para novos agendamentos.\n    \n- O sistema cruza as escalas de trabalho com os feriados/bloqueios e oculta horários que já possuam agendamentos concorrentes, evitando falhas e _overbooking_.\n    \n- A grade opera em blocos fixos. Se a duração do serviço for \"quebrada\", o sistema arredonda a reserva para o próximo múltiplo de 30 minutos.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno é um _array_ de profissionais que estão disponíveis, contendo as suas respectivas janelas de horários livres:\n\n- `id_funcionario`: Identificador do profissional na base.\n    \n- `nome_funcionario`: Nome do profissional (a lista vem em ordem alfabética).\n    \n- `slots`: Lista com os horários disponíveis para aquele funcionário, onde cada objeto contém `hora_inicio` e `hora_fim` no formato `HH:MM`.\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Enviar uma data futura com um ID de serviço válido. Esperado: Status 200 OK e a lista de slots preenchida.\n    \n- **Sem Disponibilidade:** Consultar uma data no passado, um dia inteiro bloqueado ou sem profissionais cadastrados para o serviço. Esperado: Status 404 Not Found e a mensagem padrão \"Não há horários disponíveis para esta data. Por favor, selecione outro dia.\".\n    \n- **Erro de Formato:** Enviar os parâmetros obrigatórios em branco ou a data em um formato inválido. Esperado: Status 400 Bad Request."
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Agendamento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 201) {\r",
+                  "    pm.test(\"Agendamento realizado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(201);\r",
+                  "        pm.expect(jsonData.mensagem || jsonData.message).to.eql(\"Seu agendamento foi realizado com sucesso!\");\r",
+                  "    });\r",
+                  "} else if (status === 409) {\r",
+                  "    pm.test(\"Regra de Negócio: Concorrência de horário detectada (Overbooking)\", function () {\r",
+                  "        pm.response.to.have.status(409);\r",
+                  "        pm.expect(jsonData.mensagem || jsonData.message).to.include(\"Este horário acabou de ser reservado\");\r",
+                  "    });\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Validação: Verifique a antecedência mínima de 3 horas ou campos obrigatórios\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "        if (jsonData.message) {\r",
+                  "            console.log(\"Motivo do erro: \" + jsonData.message);\r",
+                  "        }\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Serviço, Funcionário ou Cliente não encontrado\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro: Token de autenticação ausente ou expirado\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id_cliente\": 8,\r\n  \"id_servico\": 5,\r\n  \"id_funcionario\": 1,\r\n  \"data_atendimento\": \"02/05/2026\",\r\n  \"hora_inicio\": \"09:00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/agendamentos",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "agendamentos"
+              ]
+            },
+            "description": "### Criar Agendamento\n\nPermite a reserva de um novo serviço no estúdio. Este endpoint processa as regras críticas de disponibilidade, antecedência e integridade dos dados, garantindo que o agendamento nasça com o status inicial correto e sem conflitos na agenda do profissional.\n\n**Tipo de Requisição:** POST (Protegida por Token - Acesso para CLIENTE e ADMIN)\n\n**Parâmetros do Body (JSON):**\n\n- `id_servico` (Inteiro, Obrigatório): O identificador do procedimento desejado.\n    \n- `id_funcionario` (Inteiro, Obrigatório): O identificador do profissional que realizará o serviço.\n    \n- `data_atendimento` (String, Obrigatório): Data escolhida para o atendimento, seguindo o padrão `DD/MM/AAAA`.\n    \n- `hora_inicio` (String, Obrigatório): Horário de início no formato `HH:MM`.\n    \n- `id_cliente` (Inteiro, Condicional): Campo obrigatório apenas quando a reserva é realizada por um Administrador. Para clientes autenticados, o sistema identifica o ID automaticamente através do token de sessão.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno para uma reserva concluída com êxito é a confirmação oficial do agendamento:\n\n- `message`: \"Seu agendamento foi realizado com sucesso!\"\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Realizar um agendamento com dados válidos e respeitando as janelas de tempo. Esperado: Status 201 Created e mensagem de confirmação.\n    \n- **Concorrência (Overbooking):** Tentar agendar um horário que já possui um agendamento confirmado para o mesmo profissional. Esperado: Status 409 Conflict e a mensagem \"Este horário acabou de ser reservado por outra pessoa...\".\n    \n- **Antecedência Insuficiente (RN-01):** Cliente tentando agendar de forma autônoma para um horário com menos de 3 horas de antecedência. Esperado: Status 400 Bad Request e a mensagem orientando o contato telefônico.\n    \n- **Dados Incompletos/Inválidos:** Enviar a requisição sem campos obrigatórios ou com IDs de serviço/funcionário inexistentes. Esperado: Status 400 Bad Request ou 404 Not Found."
+          },
+          "response": []
+        },
+        {
+          "name": "Meus Agendamentos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Lista de agendamentos recuperada com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"O retorno deve ser um array (mesmo que vazio)\", function () {\r",
+                  "        pm.expect(jsonData).to.be.an('array');\r",
+                  "    });\r",
+                  "\r",
+                  "    if (jsonData.length > 0) {\r",
+                  "        pm.test(\"Os itens da lista possuem a estrutura de dados correta\", function () {\r",
+                  "            const agendamento = jsonData[0];\r",
+                  "            pm.expect(agendamento).to.have.property('id');\r",
+                  "            pm.expect(agendamento).to.have.property('data').that.matches(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);\r",
+                  "            pm.expect(agendamento).to.have.property('horario');\r",
+                  "            pm.expect(agendamento).to.have.property('servico');\r",
+                  "            pm.expect(agendamento).to.have.property('cliente');\r",
+                  "            pm.expect(agendamento).to.have.property('funcionario');\r",
+                  "            pm.expect(agendamento).to.have.property('valor').that.includes(\"R$\");\r",
+                  "            pm.expect(agendamento).to.have.property('status');\r",
+                  "        });\r",
+                  "    }\r",
+                  "} else if (status === 400) {\r",
+                  "    pm.test(\"Erro de Validação: Formato de data inválido no filtro\", function () {\r",
+                  "        pm.response.to.have.status(400);\r",
+                  "        pm.expect(jsonData.message).to.include(\"Formato de data inválido\");\r",
+                  "    });\r",
+                  "} else if (status === 401) {\r",
+                  "    pm.test(\"Erro de Autenticação: Token ausente ou inválido\", function () {\r",
+                  "        pm.response.to.have.status(401);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/agendamentos/meus",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "agendamentos",
+                "meus"
+              ]
+            },
+            "description": "### Meus Agendamentos\n\nEste endpoint permite que o usuário autenticado visualize sua lista pessoal de agendamentos. Ele possui um comportamento dinâmico baseado no perfil (role) do usuário logado: o Cliente visualiza suas reservas realizadas, enquanto o Funcionário visualiza sua agenda de trabalho (atendimentos vinculados a ele).\n\n**Tipo de Requisição:** GET (Protegida por Token - Acesso para CLIENTE e FUNCIONARIO)\n\n**Parâmetros de URL (Query Params - Opcionais):**\n\n- `status` (String): Filtra os agendamentos por um status específico (ex: AGENDADO, REALIZADO).\n    \n- `data_inicio` (String): Filtra agendamentos a partir de uma data específica. Deve seguir obrigatoriamente o padrão `DD/MM/AAAA`.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno é uma lista de objetos, onde cada agendamento contém:\n\n- `id`: Identificador único do agendamento.\n    \n- `data`: Data do atendimento formatada como `DD/MM/AAAA`.\n    \n- `horario`: Intervalo de tempo do serviço (ex: \"14:00 - 15:30\").\n    \n- `servico`: Nome do serviço que foi agendado.\n    \n- `cliente`: Nome completo do cliente vinculado.\n    \n- `funcionario`: Nome completo do profissional responsável.\n    \n- `valor`: Valor do serviço com máscara monetária brasileira (ex: \"R$ 150,00\").\n    \n- `status`: Situação atual do agendamento.\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso (Cliente):** Usuário com perfil CLIENTE recupera suas próprias reservas. Esperado: Status 200 OK.\n    \n- **Sucesso (Funcionário):** Usuário com perfil FUNCIONARIO recupera sua agenda de trabalho. Esperado: Status 200 OK.\n    \n- **Filtro por Data:** Utilizar o parâmetro `data_inicio` com um valor válido. Esperado: Status 200 OK.\n    \n- **Erro de Formato:** Informar uma data inválida ou fora do padrão no filtro. Esperado: Status 400 Bad Request."
+          },
+          "response": []
+        },
+        {
+          "name": "Alterar Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Status do agendamento atualizado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "        pm.expect(jsonData.mensagem || jsonData.message).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Validação de Regra: Bloqueio por horário ou antecedência insuficiente\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "        // Valida a mensagem específica de trava temporal para REALIZADO/AUSENTE\r",
+                  "        if (jsonData.message && jsonData.message.includes(\"após o horário\")) {\r",
+                  "            pm.test(\"Trava de integridade: Status futuro bloqueado corretamente\", function() { return true; });\r",
+                  "        }\r",
+                  "    });\r",
+                  "} else if (status === 403) {\r",
+                  "    pm.test(\"Segurança: Perfil sem permissão para o status solicitado\", function () {\r",
+                  "        pm.response.to.have.status(403);\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Agendamento não encontrado\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"status\": \"REALIZADO\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/agendamentos/:id/status",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "agendamentos",
+                ":id",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "6",
+                  "description": "ID do agendamento. Verifique a lista de agendamentos para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Alterar Status do Agendamento\n\nPermite atualizar a situação de um agendamento. Este endpoint possui um rigoroso controle de acesso e regras de tempo baseadas no perfil (role) do usuário logado para garantir a integridade da agenda e dos registros financeiros.\n\n**Tipo de Requisição:** PUT (Protegida por Token)\n\n**Parâmetros da URL:**\n\n- `id`: ID do agendamento que será atualizado.\n    \n\n**Parâmetros do Body (JSON):**\n\n- `status` (String, Obrigatório): O novo status desejado. Os valores aceitos são: `CONFIRMADO`, `CANCELADO`, `REALIZADO` e `AUSENTE`.\n    \n\n**Regras de Negócio e Permissões:**\n\n- **Cliente:** Pode alterar para `CONFIRMADO` ou `CANCELADO`. O cancelamento exige antecedência mínima de 2 horas; caso contrário, o sistema bloqueia a ação e orienta o contato telefônico.\n    \n- **Funcionário:** Pode marcar como `REALIZADO` ou `AUSENTE`, mas a ação é bloqueada se o horário do atendimento ainda não tiver ocorrido.\n    \n- **Administrador:** Possui flexibilidade para realizar `CONFIRMADO` ou `CANCELADO` a qualquer momento (ignorando a regra de horário). Contudo, para os status `REALIZADO` e `AUSENTE`, também deve aguardar o horário do atendimento para realizar a marcação.\n    \n- **Integrações:** Ao mudar para `REALIZADO`, o sistema gera automaticamente uma Receita no módulo Financeiro e registra a movimentação no Log de Auditoria.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO retorno para uma alteração processada com êxito é a mensagem padrão:\n\n- `message`: \"Operação realizada com sucesso!\"\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Admin:** Admin cancelando um serviço que ocorreria em menos de 2 horas. Esperado: Status 200 OK.\n    \n- **Bloqueio Temporal:** Admin ou Funcionário tentando marcar como `REALIZADO` um serviço futuro. Esperado: Status 400 Bad Request e a mensagem \"Status só pode ser marcado após o horário do atendimento.\".\n    \n- **Permissão Negada:** Cliente tentando marcar um serviço como `REALIZADO`. Esperado: Status 403 Forbidden."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Módulo 4 - Financeiro",
+      "item": [
+        {
+          "name": "Listar Lançamentos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Lançamentos financeiros carregados com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "    \r",
+                  "    pm.test(\"A resposta possui a estrutura de paginação\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('items').that.is.an('array');\r",
+                  "        pm.expect(jsonData).to.have.property('total');\r",
+                  "        pm.expect(jsonData).to.have.property('pages');\r",
+                  "        pm.expect(jsonData).to.have.property('current_page');\r",
+                  "    });\r",
+                  "    \r",
+                  "    pm.test(\"Respeita o limite de paginação de 50 itens\", function () {\r",
+                  "        pm.expect(jsonData.items.length).to.be.at.most(50);\r",
+                  "    });\r",
+                  "    \r",
+                  "    if (jsonData.items.length > 0) {\r",
+                  "        pm.test(\"A formatação dos itens (valores monetários) está correta\", function () {\r",
+                  "            const lancamento = jsonData.items[0];\r",
+                  "            pm.expect(lancamento).to.have.property('id');\r",
+                  "            pm.expect(lancamento).to.have.property('nome_lancamento');\r",
+                  "            pm.expect(lancamento).to.have.property('status_pagamento');\r",
+                  "            pm.expect(lancamento).to.have.property('valor').that.includes(\"R$\");\r",
+                  "        });\r",
+                  "    }\r",
+                  "} else if (status === 400) {\r",
+                  "    pm.test(\"Validação: O sistema detectou um formato de data inválido nos filtros\", function () {\r",
+                  "        pm.response.to.have.status(400);\r",
+                  "        pm.expect(jsonData.message).to.include(\"Formato de data inválido\");\r",
+                  "    });\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Segurança: Acesso bloqueado para usuários que não são Administradores\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/financeiro/lancamentos",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "lancamentos"
+              ]
+            },
+            "description": "### Listar Lançamentos Financeiros\n\nPermite ao Administrador consultar o extrato completo de movimentações financeiras (receitas e despesas) do estúdio. O endpoint conta com paginação otimizada para garantir a performance e diversos filtros para auxiliar na conciliação e análise do caixa.\n\n**Tipo de Requisição:** GET (Protegida por Token - Acesso restrito a ADMIN)\n\n**Parâmetros da URL (Query Params - Opcionais):**\n\n- `page` (Inteiro): Número da página. O sistema aplica um limite fixo de 50 itens por página.\n    \n- `id_categoria_financeira` (Inteiro): Filtra lançamentos vinculados a uma categoria específica (ex: \"Serviços Realizados\", \"Contas de Água\").\n    \n- `status_pagamento` (String): Filtra pela situação do lançamento (ex: `PENDENTE`, `PAGO`, `CANCELADO`).\n    \n- `forma_pagamento` (String): Filtra pelo meio de pagamento utilizado (ex: `Pix`, `Dinheiro`, `Cartão de Crédito`).\n    \n- `data_inicio` e `data_fim` (Strings): Permite filtrar lançamentos dentro de um período específico. As datas devem obrigatoriamente seguir o padrão de formatação `DD/MM/AAAA`.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO sistema retorna um objeto contendo os metadados de paginação e o _array_ com os lançamentos financeiros:\n\n- `total`: Quantidade total de lançamentos encontrados.\n    \n- `pages`: Total de páginas calculadas.\n    \n- `current_page`: Página visualizada no momento.\n    \n- `items`: Lista de registros, onde cada objeto possui `id`, `categoria`, `agendamento_id` (se originado de um serviço), `nome_lancamento`, `valor` (formatado como R$), `forma_pagamento`, `status_pagamento` e `data_pagamento` (formatada).\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Executar a consulta sem enviar filtros. Esperado: Status 200 OK com os registros paginados (máximo de 50 itens).\n    \n- **Filtragem por Data:** Enviar `data_inicio` e `data_fim` no formato padrão. Esperado: Status 200 OK.\n    \n- **Erro de Validação:** Enviar a data em um formato incorreto (ex: MM-DD-AAAA). Esperado: Status 400 Bad Request.\n    \n- **Segurança:** Tentar acessar o endpoint com um token de perfil CLIENTE ou FUNCIONARIO. Esperado: Status 403 Forbidden."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar Pagamento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Pagamento registrado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "        pm.expect(jsonData.mensagem || jsonData.message).to.eql(\"Operação realizada com sucesso!\");\r",
+                  "    });\r",
+                  "} else if (status === 400 || status === 422) {\r",
+                  "    pm.test(\"Validação de Dados: Verifique se a forma de pagamento é válida (Pix, Dinheiro, Débito ou Crédito)\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([400, 422]);\r",
+                  "        if (jsonData.errors) {\r",
+                  "            pm.expect(jsonData.errors).to.have.property('forma_pagamento');\r",
+                  "        }\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Lançamento financeiro não encontrado\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Segurança: Apenas administradores podem registrar pagamentos no sistema\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"forma_pagamento\": \"Pix\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url_base}}/api/financeiro/lancamentos/:id/pagamento",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "lancamentos",
+                ":id",
+                "pagamento"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "ID do lançamento financeiro gerado automaticamente pelo sistema após a conclusão de um agendamento."
+                }
+              ]
+            },
+            "description": "### Registrar Pagamento\n\nPermite ao Administrador confirmar o recebimento de um lançamento financeiro (receita), alterando o status de PENDENTE para PAGO. Este passo é fundamental para a conciliação bancária e para a precisão dos Dashboards de faturamento e ticket médio.\n\n**Tipo de Requisição:** PATCH (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id`: ID do lançamento financeiro que será baixado.\n    \n\n**Parâmetros do Body (JSON):**\n\n- `forma_pagamento` (String, Obrigatório): O meio pelo qual o valor foi transacionado. Valores aceitos: `Dinheiro`, `Pix`, `Débito`, `Crédito`.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO sistema retorna a confirmação de que o fluxo financeiro foi atualizado com sucesso:\n\n- `message`: \"Operação realizada com sucesso!\"\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Registrar o pagamento de um lançamento existente com uma forma de pagamento válida. Esperado: Status 200 OK.\n    \n- **Forma de Pagamento Inválida:** Tentar enviar um método não aceito (ex: \"Boleto\" ou \"Permuta\"). Esperado: Status 400 Bad Request.\n    \n- **Lançamento Inexistente:** Tentar baixar um ID que não consta no banco de dados. Esperado: Status 404 Not Found.\n    \n- **Acesso Negado:** Tentar realizar a operação com um token de perfil Cliente ou Funcionário. Esperado: Status 403 Forbidden."
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Operacional",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Dashboard Operacional carregado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Retorno contém todos os indicadores e gráficos operacionais\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('atendimentos_por_status');\r",
+                  "        pm.expect(jsonData).to.have.property('servicos_mais_realizados').that.is.an('array');\r",
+                  "        pm.expect(jsonData).to.have.property('servicos_maior_duracao').that.is.an('array');\r",
+                  "        pm.expect(jsonData).to.have.property('dias_maior_demanda').that.is.an('array');\r",
+                  "        pm.expect(jsonData).to.have.property('horarios_maior_demanda').that.is.an('array');\r",
+                  "        pm.expect(jsonData).to.have.property('card_total_clientes').that.is.a('number');\r",
+                  "        pm.expect(jsonData).to.have.property('card_clientes_ativos').that.is.a('number');\r",
+                  "        pm.expect(jsonData).to.have.property('card_clientes_anonimizados').that.is.a('number');\r",
+                  "    });\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Segurança: Acesso negado para perfis sem privilégio de Administrador\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/financeiro/dashboard/operacional",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "dashboard",
+                "operacional"
+              ]
+            },
+            "description": "### Dashboard Operacional\n\nFornece ao Administrador uma visão estratégica sobre o volume de atendimentos, comportamento da agenda e base de clientes. Este endpoint processa o histórico global do sistema para identificar padrões de demanda (dias e horários de pico) e a taxa de retenção/anonimização de clientes.\n\n**Tipo de Requisição:** GET (Protegida por Token - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**  \n_(Nota: Este endpoint processa o volume histórico global e não utiliza filtros de data)._\n\n**Estrutura da Resposta (Sucesso):**  \nO sistema retorna um objeto consolidado com as seguintes métricas operacionais:\n\n- `atendimentos_por_status`: Dicionário com a contagem total de agendamentos separados por situação (ex: REALIZADO, CANCELADO).\n    \n- `servicos_mais_realizados`: Top 5 serviços mais agendados na história do estúdio.\n    \n- `servicos_maior_duracao`: Top 5 procedimentos que mais bloqueiam tempo na agenda.\n    \n- `dias_maior_demanda`: Ranking dos dias da semana com maior volume de clientes.\n    \n- `horarios_maior_demanda`: Top 5 horários de pico do estúdio.\n    \n- `card_total_clientes`: Número total de perfis de clientes registrados.\n    \n- `card_clientes_ativos`: Número de clientes reais e ativos.\n    \n- `card_clientes_anonimizados`: Número de clientes que solicitaram a exclusão de dados (LGPD).\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Acessar a rota com um token de Administrador. Esperado: Status 200 OK e a estrutura completa de métricas.\n    \n- **Acesso Negado:** Tentar acessar utilizando o token de um Cliente ou Funcionário. Esperado: Status 403 Forbidden."
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Financeiro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Dashboard Financeiro carregado com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Estrutura do retorno contém todos os KPIs financeiros\", function () {\r",
+                  "        pm.expect(jsonData).to.have.property('receita_total').that.includes(\"R$\");\r",
+                  "        pm.expect(jsonData).to.have.property('ticket_medio').that.includes(\"R$\");\r",
+                  "        pm.expect(jsonData).to.have.property('taxa_no_show').that.includes(\"%\");\r",
+                  "        pm.expect(jsonData).to.have.property('receita_por_pagamento').that.is.an('array');\r",
+                  "        pm.expect(jsonData).to.have.property('receita_por_servico').that.is.an('array');\r",
+                  "        pm.expect(jsonData).to.have.property('receita_por_periodo').that.is.an('array');\r",
+                  "    });\r",
+                  "} else if (status === 400) {\r",
+                  "    pm.test(\"Erro de Validação: O formato da data do filtro está incorreto\", function () {\r",
+                  "        pm.response.to.have.status(400);\r",
+                  "        pm.expect(jsonData.message).to.include(\"Formato de data inválido\");\r",
+                  "    });\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Segurança: Acesso restrito a Administradores\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/financeiro/dashboard/financeiro",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "dashboard",
+                "financeiro"
+              ]
+            },
+            "description": "### Dashboard Financeiro\n\nPermite ao Administrador monitorar a saúde financeira do estúdio. Este endpoint calcula faturamento, ticket médio e taxa de absenteísmo (no-show), cruzando os lançamentos liquidados (pagos) com os serviços realizados.\n\n**Tipo de Requisição:** GET (Protegida por Token - Acesso restrito a ADMIN)\n\n**Parâmetros da URL (Query Params - Opcionais):**\n\n- `data_inicio` e `data_fim` (Strings): Permite filtrar as estatísticas dentro de um período específico. As datas devem obrigatoriamente seguir o padrão `DD/MM/AAAA`.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO sistema retorna um objeto consolidado focado em receitas:\n\n- `receita_total`: Soma de todos os lançamentos pagos no período, formatada em Reais (R$).\n    \n- `ticket_medio`: Valor médio gasto por atendimento (Receita Total / Qtd de Realizados).\n    \n- `taxa_no_show`: Porcentagem de clientes que faltaram (Agendamentos Ausentes / Realizados + Ausentes).\n    \n- `receita_por_pagamento`: Faturamento quebrado pelo método utilizado (Pix, Dinheiro, etc).\n    \n- `receita_por_servico`: Ranking de faturamento gerado por tipo de procedimento.\n    \n- `receita_por_periodo`: Evolução diária do caixa (gráfico de linha/barras temporal).\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Acessar os indicadores globais sem filtro de data. Esperado: Status 200 OK.\n    \n- **Filtro de Período:** Enviar `data_inicio` e `data_fim` válidas para analisar o fechamento de um mês. Esperado: Status 200 OK.\n    \n- **Formato de Data Inválido:** Passar o filtro com formato americano ou caracteres inválidos. Esperado: Status 400 Bad Request.\n    \n- **Acesso Negado:** Tentar acessar com perfil Cliente ou Funcionário. Esperado: Status 403 Forbidden."
+          },
+          "response": []
+        },
+        {
+          "name": "Auditoria de Agendamento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const status = pm.response.code;\r",
+                  "let jsonData = {};\r",
+                  "try { jsonData = pm.response.json(); } catch(e) {}\r",
+                  "\r",
+                  "if (status === 200) {\r",
+                  "    pm.test(\"Logs de auditoria recuperados com sucesso\", function () {\r",
+                  "        pm.response.to.have.status(200);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"O retorno deve ser uma lista de eventos (array)\", function () {\r",
+                  "        pm.expect(jsonData).to.be.an('array');\r",
+                  "    });\r",
+                  "\r",
+                  "    if (jsonData.length > 0) {\r",
+                  "        pm.test(\"Os registros de log possuem os campos de rastreabilidade (Responsável e Status)\", function () {\r",
+                  "            const log = jsonData[0];\r",
+                  "            pm.expect(log).to.have.property('status_novo');\r",
+                  "            pm.expect(log).to.have.property('nome_responsavel');\r",
+                  "            pm.expect(log).to.have.property('data_alteracao').that.includes(\":\");\r",
+                  "        });\r",
+                  "    }\r",
+                  "} else if (status === 401 || status === 403) {\r",
+                  "    pm.test(\"Segurança: Acesso à trilha de auditoria restrito a Administradores\", function () {\r",
+                  "        pm.expect(status).to.be.oneOf([401, 403]);\r",
+                  "    });\r",
+                  "} else if (status === 404) {\r",
+                  "    pm.test(\"Erro: Agendamento não encontrado para auditoria\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Erro inesperado no servidor\", function () {\r",
+                  "        pm.response.to.be.success;\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url_base}}/api/financeiro/auditoria/:id_agendamento",
+              "host": [
+                "{{url_base}}"
+              ],
+              "path": [
+                "api",
+                "financeiro",
+                "auditoria",
+                ":id_agendamento"
+              ],
+              "variable": [
+                {
+                  "key": "id_agendamento",
+                  "value": "2",
+                  "description": "ID do agendamento. Verifique a lista de agendamentos para obter IDs válidos antes de testar."
+                }
+              ]
+            },
+            "description": "### Auditoria de Agendamento\n\nPermite ao Administrador consultar o histórico completo de alterações de status de um agendamento específico. Este endpoint é fundamental para a governança do estúdio, registrando cada transação na máquina de estados (ex: de AGENDADO para REALIZADO) e identificando o responsável pela ação.\n\n**Tipo de Requisição:** GET (Protegida - Acesso restrito a ADMIN)\n\n**Parâmetros da URL:**\n\n- `id_agendamento`: O identificador do agendamento que se deseja auditar.\n    \n\n**Estrutura da Resposta (Sucesso):**  \nO sistema retorna uma lista cronológica de eventos, onde cada registro de log contém:\n\n- `id`: Identificador único do registro de auditoria.\n    \n- `status_anterior`: O status em que o agendamento estava antes da mudança (pode ser nulo no caso da criação).\n    \n- `status_novo`: O novo status aplicado ao agendamento.\n    \n- `id_responsavel`: ID do usuário que realizou a alteração.\n    \n- `nome_responsavel`: Nome completo de quem executou a ação.\n    \n- `data_alteracao`: Carimbo de data e hora exatos da modificação, formatado como `DD/MM/AAAA HH:MM`.\n    \n\n**Cenários de Teste Recomendados:**\n\n- **Sucesso Geral:** Consultar um agendamento que já passou por mudanças de status. Esperado: Status 200 OK e a lista de logs em ordem crescente de data.\n    \n- **Agendamento sem Logs:** Consultar um ID válido que ainda não sofreu alterações. Esperado: Status 200 OK com um array vazio.\n    \n- **Segurança:** Tentar acessar o histórico utilizando um perfil de Cliente ou Funcionário. Esperado: Status 403 Forbidden."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{temp_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}
