@@ -333,7 +333,7 @@ def mudar_status(id):
             lancamento = LancamentoFinanceiro(
                 id_categoria_financeira=cat_receita.id,
                 id_agendamento=agendamento.id,
-                nome_lancamento=f"Receita: {agendamento.servico.servico_aplicado} - {agendamento.cliente.nome_completo}",
+                nome_lancamento=f"Receita: {agendamento.servico_aplicado} - {agendamento.cliente.nome_completo}",
                 valor=agendamento.valor_aplicado,
                 status_pagamento='PENDENTE' # [RN-12]
             )
