@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_smorest import Api
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
@@ -14,6 +15,9 @@ jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
+
+    #CORS para comunicação com frontend
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Configurações para flask-smorest / Swagger
     app.config['API_TITLE'] = 'Sistema de Agendamento PI3 API'
