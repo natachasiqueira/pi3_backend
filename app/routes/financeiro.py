@@ -1,4 +1,5 @@
-from flask import request, jsonify
+import json
+from flask import Response, request, jsonify
 from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt
 from app.models import db, LancamentoFinanceiro, LogAuditoria, Agendamento, CategoriaFinanceira, Servico, Funcionario, Usuario
