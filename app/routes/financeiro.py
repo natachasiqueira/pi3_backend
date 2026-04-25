@@ -213,6 +213,7 @@ def dashboard_financeiro():
 
 # AUDITORIA
 
+# 1. Listar logs de auditoria por agendamento [US-16]
 @financeiro_bp.route('/auditoria/<int:id_agendamento>', methods=['GET'])
 @jwt_required()
 def listar_logs_auditoria(id_agendamento):
@@ -224,3 +225,30 @@ def listar_logs_auditoria(id_agendamento):
     logs = LogAuditoria.query.filter_by(id_agendamento=id_agendamento).order_by(LogAuditoria.data_alteracao.asc()).all()
     schema = LogAuditoriaSchema(many=True)
     return jsonify(schema.dump(logs)), 200
+
+# 2. Exportar logs de auditoria [US-16]
+@financeiro_bp.route('/auditoria/exportar', methods=['GET'])
+@jwt_required()
+def exportar_logs_auditoria():
+    claims = get_jwt()
+    roles = claims.get("roles", [])
+    if "ADMIN" not in roles:
+        return jsonify({"message": "Acesso restrito a administradores."}), 403
+
+    # Busca TODOS os logs do banco para o relatório completo
+    logs = LogAuditoria.query.order_by(LogAuditoria.data_alteracao.desc()).all()
+    
+    schema = LogAuditoriaSchema(many=True)
+    dados_serializados = schema.dump(logs)
+    
+    # Transforma em string JSON com indentação para o arquivo ficar legível
+    json_str = json.dumps(dados_serializados, indent=4, ensure_ascii=False)
+    
+    # Retorna o Response configurado para disparar o download no navegador
+    return Response(
+        json_str,
+        mimetype='application/json',
+        headers={
+            'Content-Disposition': 'attachment;filename=relatorio_auditoria_completo.json'
+        }
+    )
