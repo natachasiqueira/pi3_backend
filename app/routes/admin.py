@@ -22,7 +22,8 @@ def admin_required():
         return decorator
     return wrapper
 
-# --- GESTÃO DE CATEGORIAS E SERVIÇOS [US-09] ---
+
+# CATEGORIAS E SERVIÇOS [US-09]
 
 @admin_bp.route('/categorias', methods=['GET'])
 @jwt_required()
@@ -73,7 +74,7 @@ def editar_categoria(id):
 @admin_bp.route('/servicos', methods=['GET'])
 @jwt_required()
 def listar_servicos():
-    # RI-08: Paginação de 50 itens
+    # Paginação de 50 itens [RI-08]
     page = request.args.get('page', 1, type=int)
     per_page = 50
     
@@ -125,7 +126,8 @@ def editar_servico(id):
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 200
 
-# --- GESTÃO DE FUNCIONÁRIOS [US-10] ---
+
+# FUNCIONÁRIOS [US-10]
 
 @admin_bp.route('/funcionarios', methods=['GET'])
 @admin_required()
@@ -154,6 +156,8 @@ def listar_funcionarios():
         except ValueError:
             return jsonify({"message": "Formato de data inválido. Use DD/MM/AAAA."}), 400
 
+    query = query.order_by(Usuario.nome_completo.asc())
+
     funcionarios_pagination = query.paginate(page=page, per_page=per_page)
     
     results = []
@@ -173,6 +177,21 @@ def listar_funcionarios():
         "total": funcionarios_pagination.total,
         "pages": funcionarios_pagination.pages,
         "current_page": funcionarios_pagination.page
+    }), 200
+
+@admin_bp.route('/funcionarios/<int:id>', methods=['GET'])
+@admin_required()
+def obter_funcionario(id):
+    # Obter dados de um funcionário específico [US-10]
+    f = Funcionario.query.get_or_404(id)
+    return jsonify({
+        "id": f.id,
+        "id_usuario": f.id_usuario,
+        "nome_completo": f.usuario.nome_completo,
+        "email": f.usuario.email,
+        "telefone": f.usuario.telefone,
+        "ativo": f.ativo,
+        "categorias": [{"id": c.id, "nome": c.nome_categoria} for c in f.categorias]
     }), 200
 
 @admin_bp.route('/funcionarios', methods=['POST'])
@@ -214,6 +233,103 @@ def criar_funcionario():
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 201
 
+@admin_bp.route('/funcionarios/<int:id>', methods=['PUT'])
+@admin_required()
+def editar_funcionario_admin(id):
+    # Edição de dados do funcionário pelo Admin [US-10]
+    funcionario = Funcionario.query.get_or_404(id)
+    usuario = funcionario.usuario
+    
+    schema = UpdatePerfilSchema(partial=True, unknown='exclude')
+    try:
+        data = schema.load(request.json)
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 400
+
+    if 'nome_completo' in data: usuario.nome_completo = data['nome_completo']
+    if 'email' in data:
+        existente = Usuario.query.filter_by(email=data['email']).first()
+        if existente and existente.id != usuario.id:
+            return jsonify({"message": "E-mail já em uso por outro usuário."}), 409
+        usuario.email = data['email']
+    if 'telefone' in data: usuario.telefone = data['telefone']
+    if 'ativo' in request.json: funcionario.ativo = request.json.get('ativo')
+    
+    # Vincular categorias via checkbox [US-10.3]
+    ids_categorias = request.json.get('ids_categorias')
+    if ids_categorias is not None:
+        categorias = CategoriaServico.query.filter(CategoriaServico.id.in_(ids_categorias)).all()
+        funcionario.categorias = categorias
+
+    # Alteração manual de senha pelo Admin [US-10]
+    if 'nova_senha' in data:
+        from werkzeug.security import generate_password_hash
+        usuario.senha = generate_password_hash(data['nova_senha'])
+
+    db.session.commit()
+    return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
+
+@admin_bp.route('/funcionarios/<int:id>/horarios', methods=['GET'])
+@admin_required()
+def obter_horarios_funcionario(id):
+    # Visualizar horários de trabalho atuais de um funcionário [US-10]
+    # Verifica se o funcionário existe
+    Funcionario.query.get_or_404(id)
+    
+    # Busca os horários ordenados por dia da semana e hora de início
+    horarios = HorarioTrabalho.query.filter_by(id_funcionario=id)\
+        .order_by(HorarioTrabalho.dia_semana.asc(), HorarioTrabalho.hora_inicio.asc()).all()
+    
+    schema = HorarioTrabalhoSchema(many=True)
+    return jsonify(schema.dump(horarios)), 200
+
+@admin_bp.route('/funcionarios/<int:id>/horarios', methods=['POST'])
+@admin_required()
+def configurar_horarios(id):
+    funcionario = Funcionario.query.get_or_404(id)
+    schema = HorarioTrabalhoSchema(many=True)
+    try:
+        horarios_data = schema.load(request.json)
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 400
+
+    # Limpa horários antigos para redefinir
+    HorarioTrabalho.query.filter_by(id_funcionario=id).delete()
+    
+    for h in horarios_data:
+        novo_horario = HorarioTrabalho(
+            id_funcionario=id,
+            dia_semana=h['dia_semana'],
+            hora_inicio=h['hora_inicio'],
+            hora_fim=h['hora_fim']
+        )
+        db.session.add(novo_horario)
+    
+    db.session.commit()
+    return jsonify({"message": "Operação realizada com sucesso!"}), 200
+
+@admin_bp.route('/funcionarios/<int:id>/bloqueios', methods=['POST'])
+@admin_required()
+def adicionar_bloqueio(id):
+    funcionario = Funcionario.query.get_or_404(id)
+    schema = BloqueioAgendaSchema()
+    try:
+        data = schema.load(request.json)
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 400
+
+    novo_bloqueio = BloqueioAgenda(
+        id_funcionario=id,
+        data_bloqueio=data['data_bloqueio'],
+        motivo=data.get('motivo')
+    )
+    db.session.add(novo_bloqueio)
+    db.session.commit()
+    return jsonify({"message": "Operação realizada com sucesso!"}), 201
+
+
+# CLIENTES [US-11]
+
 @admin_bp.route('/clientes', methods=['GET'])
 @admin_required()
 def listar_clientes():
@@ -241,7 +357,7 @@ def listar_clientes():
         except ValueError:
             return jsonify({"message": "Formato de data inválido. Use DD/MM/AAAA."}), 400
 
-    query = Usuario.query.filter_by(role='CLIENTE').order_by(Usuario.nome_completo.asc())
+    query = query.order_by(Usuario.nome_completo.asc())
 
     clientes_pagination = query.paginate(page=page, per_page=per_page)
     
@@ -256,7 +372,7 @@ def listar_clientes():
 @admin_bp.route('/clientes', methods=['POST'])
 @admin_required()
 def criar_cliente_admin():
-    # [US-11] Cadastro de cliente pelo Admin
+    # Cadastro de cliente pelo Admin [US-11]
     schema = UsuarioSchema()
     try:
         data = schema.load(request.json)
@@ -279,35 +395,10 @@ def criar_cliente_admin():
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 201
 
-@admin_bp.route('/funcionarios/<int:id>/horarios', methods=['POST'])
-@admin_required()
-def configurar_horarios(id):
-    funcionario = Funcionario.query.get_or_404(id)
-    schema = HorarioTrabalhoSchema(many=True)
-    try:
-        horarios_data = schema.load(request.json)
-    except ValidationError as err:
-        return jsonify({"errors": err.messages}), 400
-
-    # Limpa horários antigos para redefinir
-    HorarioTrabalho.query.filter_by(id_funcionario=id).delete()
-    
-    for h in horarios_data:
-        novo_horario = HorarioTrabalho(
-            id_funcionario=id,
-            dia_semana=h['dia_semana'],
-            hora_inicio=h['hora_inicio'],
-            hora_fim=h['hora_fim']
-        )
-        db.session.add(novo_horario)
-    
-    db.session.commit()
-    return jsonify({"message": "Operação realizada com sucesso!"}), 200
-
 @admin_bp.route('/clientes/<int:id>', methods=['PUT'])
 @admin_required()
 def editar_cliente_admin(id):
-    # [US-11] Edição de dados do perfil pelo Admin
+    # Edição de dados do perfil pelo Admin [US-11]
     # Filtra por ID e garante que o usuário tenha a role CLIENTE
     usuario = Usuario.query.filter(Usuario.id == id, Usuario.role.contains('CLIENTE')).first_or_404()
     schema = UpdatePerfilSchema(partial=True)
@@ -324,7 +415,7 @@ def editar_cliente_admin(id):
         usuario.email = data['email']
     if 'telefone' in data: usuario.telefone = data['telefone']
     
-    # [US-11] Alteração manual de senha pelo Admin
+    # Alteração manual de senha pelo Admin [US-11]
     if 'nova_senha' in data:
         from werkzeug.security import generate_password_hash
         usuario.senha = generate_password_hash(data['nova_senha'])
@@ -332,80 +423,13 @@ def editar_cliente_admin(id):
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
 
-@admin_bp.route('/funcionarios/<int:id>', methods=['GET'])
-@admin_required()
-def obter_funcionario(id):
-    # [US-10] Obter dados de um funcionário específico
-    f = Funcionario.query.get_or_404(id)
-    return jsonify({
-        "id": f.id,
-        "id_usuario": f.id_usuario,
-        "nome_completo": f.usuario.nome_completo,
-        "email": f.usuario.email,
-        "telefone": f.usuario.telefone,
-        "ativo": f.ativo,
-        "categorias": [{"id": c.id, "nome": c.nome_categoria} for c in f.categorias]
-    }), 200
 
-@admin_bp.route('/funcionarios/<int:id>', methods=['PUT'])
-@admin_required()
-def editar_funcionario_admin(id):
-    # [US-10] Edição de dados do funcionário pelo Admin
-    funcionario = Funcionario.query.get_or_404(id)
-    usuario = funcionario.usuario
-    
-    schema = UpdatePerfilSchema(partial=True, unknown='exclude')
-    try:
-        data = schema.load(request.json)
-    except ValidationError as err:
-        return jsonify({"errors": err.messages}), 400
-
-    if 'nome_completo' in data: usuario.nome_completo = data['nome_completo']
-    if 'email' in data:
-        existente = Usuario.query.filter_by(email=data['email']).first()
-        if existente and existente.id != usuario.id:
-            return jsonify({"message": "E-mail já em uso por outro usuário."}), 409
-        usuario.email = data['email']
-    if 'telefone' in data: usuario.telefone = data['telefone']
-    if 'ativo' in request.json: funcionario.ativo = request.json.get('ativo')
-    
-    # [US-10.3] Vincular categorias via checkbox
-    ids_categorias = request.json.get('ids_categorias')
-    if ids_categorias is not None:
-        categorias = CategoriaServico.query.filter(CategoriaServico.id.in_(ids_categorias)).all()
-        funcionario.categorias = categorias
-
-    # [US-10] Alteração manual de senha pelo Admin
-    if 'nova_senha' in data:
-        from werkzeug.security import generate_password_hash
-        usuario.senha = generate_password_hash(data['nova_senha'])
-
-    db.session.commit()
-    return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
-
-@admin_bp.route('/funcionarios/<int:id>/bloqueios', methods=['POST'])
-@admin_required()
-def adicionar_bloqueio(id):
-    funcionario = Funcionario.query.get_or_404(id)
-    schema = BloqueioAgendaSchema()
-    try:
-        data = schema.load(request.json)
-    except ValidationError as err:
-        return jsonify({"errors": err.messages}), 400
-
-    novo_bloqueio = BloqueioAgenda(
-        id_funcionario=id,
-        data_bloqueio=data['data_bloqueio'],
-        motivo=data.get('motivo')
-    )
-    db.session.add(novo_bloqueio)
-    db.session.commit()
-    return jsonify({"message": "Operação realizada com sucesso!"}), 201
+# AGENDAMENTOS [US-12]
 
 @admin_bp.route('/agendamentos', methods=['GET'])
 @admin_required()
 def listar_todos_agendamentos():
-    # [US-12] Visão Global de Agendamentos
+    # Visão Global de Agendamentos [US-12]
     page = request.args.get('page', 1, type=int)
     per_page = 50
     
