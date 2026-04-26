@@ -241,6 +241,8 @@ def listar_clientes():
         except ValueError:
             return jsonify({"message": "Formato de data inválido. Use DD/MM/AAAA."}), 400
 
+    query = Usuario.query.filter_by(role='CLIENTE').order_by(Usuario.nome_completo.asc())
+
     clientes_pagination = query.paginate(page=page, per_page=per_page)
     
     schema = UsuarioSchema(many=True)

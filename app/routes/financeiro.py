@@ -2,7 +2,7 @@ import json
 from flask import Response, request, jsonify
 from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt
-from app.models import db, LancamentoFinanceiro, LogAuditoria, Agendamento, CategoriaFinanceira, Servico, Funcionario, Usuario
+from app.models import db, LancamentoFinanceiro, LogAuditoria, Agendamento, Servico, Usuario
 from app.schemas import LancamentoFinanceiroSchema, LogAuditoriaSchema
 from marshmallow import ValidationError
 from datetime import datetime

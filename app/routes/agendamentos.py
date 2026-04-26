@@ -3,9 +3,8 @@ from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.models import db, Agendamento, Servico, Funcionario, HorarioTrabalho, BloqueioAgenda, Usuario, LogAuditoria
 from app.schemas import AgendamentoSchema
-from app.models import CategoriaFinanceira, LancamentoFinanceiro
 from marshmallow import ValidationError
-from datetime import datetime, timedelta, time, date
+from datetime import datetime, timedelta, time
 import os
 import pytz
 import math
