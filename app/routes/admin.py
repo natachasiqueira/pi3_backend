@@ -70,7 +70,7 @@ def editar_categoria(id):
         if existente and existente.id != categoria.id:
             return jsonify({"message": "Categoria já existe."}), 409
         categoria.nome_categoria = data['nome_categoria']
-     if 'ativo' in request.json:
+    if 'ativo' in request.json:
         categoria.ativo = request.json.get('ativo')
         # Se a categoria for desativada, desativará os serviços abaixo dela
         if not data['ativo']:
