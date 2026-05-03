@@ -88,6 +88,16 @@ class BloqueioAgendaSchema(Schema):
     data_bloqueio = fields.Date(required=True, format='%d/%m/%Y') # [PD-01]
     motivo = fields.Str(validate=validate.Length(max=255))
 
+class BloqueioPeriodoSchema(Schema):
+    data_inicio = fields.Date(required=True, format='%d/%m/%Y')
+    data_fim = fields.Date(required=True, format='%d/%m/%Y')
+    motivo = fields.Str(validate=validate.Length(max=255))
+
+    @validates_schema
+    def validar_datas(self, data, **kwargs):
+        if data['data_inicio'] > data['data_fim']:
+            raise ValidationError("A data de início não pode ser maior que a data de fim.", field_name="data_inicio")
+
 class FuncionarioSchema(UsuarioSchema):
     # Herança para concentrar validações de usuário [US-10]
     ids_categorias = fields.List(fields.Int(), load_only=True)

@@ -5,6 +5,7 @@ from app.models import db, CategoriaServico, Servico, Funcionario, Usuario, Hora
 from app.schemas import CategoriaServicoSchema, ServicoSchema, FuncionarioSchema, HorarioTrabalhoSchema, BloqueioAgendaSchema, UsuarioSchema, UpdatePerfilSchema
 from marshmallow import ValidationError
 from functools import wraps
+from datetime import timedelta
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin', description='Administração do Sistema')
 
@@ -363,24 +364,58 @@ def configurar_horarios(id):
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 200
 
+@admin_bp.route('/funcionarios/<int:id>/bloqueios', methods=['GET'])
+@admin_required()
+def listar_bloqueios(id):
+    # Verifica se o funcionário existe
+    Funcionario.query.get_or_404(id)
+    
+    # Busca todos os bloqueios futuros daquele funcionário
+    from datetime import date
+    bloqueios = BloqueioAgenda.query.filter(
+        BloqueioAgenda.id_funcionario == id,
+        BloqueioAgenda.data_bloqueio >= date.today()
+    ).order_by(BloqueioAgenda.data_bloqueio.asc()).all()
+    
+    schema = BloqueioAgendaSchema(many=True)
+    return jsonify(schema.dump(bloqueios)), 200
+
 @admin_bp.route('/funcionarios/<int:id>/bloqueios', methods=['POST'])
 @admin_required()
 def adicionar_bloqueio(id):
     funcionario = Funcionario.query.get_or_404(id)
-    schema = BloqueioAgendaSchema()
+    from app.schemas import BloqueioPeriodoSchema
+    schema = BloqueioPeriodoSchema()
+    
     try:
         data = schema.load(request.json)
     except ValidationError as err:
         return jsonify({"errors": err.messages}), 400
 
-    novo_bloqueio = BloqueioAgenda(
-        id_funcionario=id,
-        data_bloqueio=data['data_bloqueio'],
-        motivo=data.get('motivo')
-    )
-    db.session.add(novo_bloqueio)
+    data_atual = data['data_inicio']
+    data_final = data['data_fim']
+    motivo = data.get('motivo')
+
+    # Laço de repetição: cria um bloqueio no banco para CADA DIA do período
+    while data_atual <= data_final:
+        # Verifica se já não existe um bloqueio para esse dia para evitar duplicação
+        bloqueio_existente = BloqueioAgenda.query.filter_by(
+            id_funcionario=id, data_bloqueio=data_atual
+        ).first()
+        
+        if not bloqueio_existente:
+            novo_bloqueio = BloqueioAgenda(
+                id_funcionario=id,
+                data_bloqueio=data_atual,
+                motivo=motivo
+            )
+            db.session.add(novo_bloqueio)
+            
+        # Pula para o próximo dia (+1 dia)
+        data_atual += timedelta(days=1)
+        
     db.session.commit()
-    return jsonify({"message": "Operação realizada com sucesso!"}), 201
+    return jsonify({"message": "Período bloqueado com sucesso!"}), 201
 
 
 # CLIENTES [US-11]
