@@ -156,6 +156,8 @@ def criar_agendamento():
         id_cliente = int(get_jwt_identity())
 
     servico = Servico.query.get_or_404(data['id_servico'])
+    if not servico.ativo or not servico.categoria.ativo:
+        return jsonify({"message": "Este serviço ou categoria não está mais disponível para agendamento."}), 400
     duracao_efetiva = arredondar_duracao(servico.duracao_minutos)
     
     inicio_minutos = time_to_minutes(data['hora_inicio'])

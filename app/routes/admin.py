@@ -28,7 +28,12 @@ def admin_required():
 @admin_bp.route('/categorias', methods=['GET'])
 @jwt_required()
 def listar_categorias():
-    categorias = CategoriaServico.query.all()
+    somente_ativos = request.args.get('somente_ativos')
+    query = CategoriaServico.query
+    if somente_ativos == 'true':
+        query = query.filter_by(ativo=True)
+
+    categorias = query.all()
     schema = CategoriaServicoSchema(many=True)
     return jsonify(schema.dump(categorias)), 200
 
@@ -67,6 +72,10 @@ def editar_categoria(id):
         categoria.nome_categoria = data['nome_categoria']
     if 'ativo' in data:
         categoria.ativo = data['ativo']
+        # Se a categoria for desativada, desativará os serviços abaixo dela
+        if not data['ativo']:
+            for servico in categoria.servicos:
+                servico.ativo = False
         
     db.session.commit()
     return jsonify({"message": "Operação realizada com sucesso!"}), 200 # [MSG-09]
@@ -77,7 +86,14 @@ def listar_servicos():
     # Paginação de 50 itens [RI-08]
     page = request.args.get('page', 1, type=int)
     per_page = 50
+    somente_ativos = request.args.get('somente_ativos')
     
+    query = Servico.query.join(CategoriaServico)
+    
+    # Filtra somente serviços ativos
+    if somente_ativos == 'true':
+        query = query.filter_by(ativo=True)
+
     servicos_pagination = Servico.query.paginate(page=page, per_page=per_page)
     schema = ServicoSchema(many=True)
     
@@ -96,6 +112,10 @@ def criar_servico():
         data = schema.load(request.json)
     except ValidationError as err:
         return jsonify({"errors": err.messages}), 400
+
+    categoria_alvo = CategoriaServico.query.get(data['id_categoria'])
+    if categoria_alvo and not categoria_alvo.ativo:
+        return jsonify({"message": "Não é possível criar um serviço em uma categoria inativada."}), 400
 
     novo_servico = Servico(
         id_categoria=data['id_categoria'],
@@ -116,6 +136,11 @@ def editar_servico(id):
         data = schema.load(request.json)
     except ValidationError as err:
         return jsonify({"errors": err.messages}), 400
+
+    if novo_status_ativo:
+        categoria_alvo = CategoriaServico.query.get(nova_categoria_id)
+        if categoria_alvo and not categoria_alvo.ativo:
+            return jsonify({"message": "Este serviço está atrelado a uma categoria inativada. Você precisa mudar a categoria do serviço ou ativar a categoria primeiro."}), 400
 
     if 'id_categoria' in data: servico.id_categoria = data['id_categoria']
     if 'nome_servico' in data: servico.nome_servico = data['nome_servico']
