@@ -320,7 +320,35 @@ def configurar_horarios(id):
     except ValidationError as err:
         return jsonify({"errors": err.messages}), 400
 
-    # Limpa horários antigos para redefinir
+    # Valida coerência e sobreposição
+    horarios_por_dia = {}
+    
+    # 1. Agrupa horários por dia e checa a lógica básica do turno
+    for h in horarios_data:
+        dia = h['dia_semana']
+        
+        # Impede turnos como 18:00 às 08:00 ou 10:00 às 10:00
+        if h['hora_inicio'] >= h['hora_fim']:
+            return jsonify({"message": f"A hora de início não pode ser maior ou igual à hora de fim (Dia {dia})."}), 400
+        
+        if dia not in horarios_por_dia:
+            horarios_por_dia[dia] = []
+        horarios_por_dia[dia].append(h)
+
+    # 2. Checa sobreposição de turnos no mesmo dia
+    for dia, turnos in horarios_por_dia.items():
+        # Ordena os turnos do dia pela hora de início para facilitar a comparação
+        turnos_ordenados = sorted(turnos, key=lambda x: x['hora_inicio'])
+        
+        for i in range(len(turnos_ordenados) - 1):
+            turno_atual = turnos_ordenados[i]
+            proximo_turno = turnos_ordenados[i+1]
+            
+            # Se o fim do turno atual passa do início do próximo, há sobreposição!
+            if turno_atual['hora_fim'] > proximo_turno['hora_inicio']:
+                return jsonify({"message": f"Foram detectados horários sobrepostos para o dia {dia} da semana."}), 400
+
+    # Limpa os horários antigos e salva os novos
     HorarioTrabalho.query.filter_by(id_funcionario=id).delete()
     
     for h in horarios_data:
