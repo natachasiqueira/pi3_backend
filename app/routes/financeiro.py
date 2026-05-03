@@ -181,10 +181,10 @@ def dashboard_financeiro():
      .group_by(Agendamento.servico_aplicado)\
      .all()
 
-    # 3. Ticket Médio (Receita Total / Total de Realizados) [US-16]
+    # 3. Ticket Médio (Receita Total / Total de Realizados Pagos) [US-16]
     total_receita = db.session.query(func.sum(LancamentoFinanceiro.valor)).filter(LancamentoFinanceiro.id.in_([l.id for l in query_base.all()])).scalar() or 0
-    total_realizados = query_agendamentos.count()
-    ticket_medio = total_receita / total_realizados if total_realizados > 0 else 0
+    total_pagos = query_base.count()
+    ticket_medio = total_receita / total_pagos if total_pagos > 0 else 0
 
     # 4. Cálculo da Taxa de No-Show [RN-06]
     total_ausentes = Agendamento.query.filter_by(status='AUSENTE')
