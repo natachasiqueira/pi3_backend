@@ -30,6 +30,10 @@ def create_app():
 
     # Configurações de Banco e JWT
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,  # Testa a conexão antes de cada comando
+    "pool_recycle": 300,    # Recicla conexões antigas a cada 5 minutos (300 segundos)
+    }
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
     app.config['TIMEZONE'] = os.environ.get('TIMEZONE', 'America/Sao_Paulo')
