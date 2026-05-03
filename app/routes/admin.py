@@ -417,6 +417,17 @@ def adicionar_bloqueio(id):
     db.session.commit()
     return jsonify({"message": "Período bloqueado com sucesso!"}), 201
 
+@admin_bp.route('/funcionarios/<int:id_funcionario>/bloqueios/<int:id_bloqueio>', methods=['DELETE'])
+@admin_required()
+def remover_bloqueio(id_funcionario, id_bloqueio):
+    # Busca o bloqueio garantindo que ele existe e que pertence àquele funcionário específico
+    bloqueio = BloqueioAgenda.query.filter_by(id=id_bloqueio, id_funcionario=id_funcionario).first_or_404()
+    
+    db.session.delete(bloqueio)
+    db.session.commit()
+    
+    return jsonify({"message": "Bloqueio removido com sucesso!"}), 200
+
 
 # CLIENTES [US-11]
 
