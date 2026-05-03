@@ -70,8 +70,8 @@ def editar_categoria(id):
         if existente and existente.id != categoria.id:
             return jsonify({"message": "Categoria já existe."}), 409
         categoria.nome_categoria = data['nome_categoria']
-    if 'ativo' in data:
-        categoria.ativo = data['ativo']
+     if 'ativo' in request.json:
+        categoria.ativo = request.json.get('ativo')
         # Se a categoria for desativada, desativará os serviços abaixo dela
         if not data['ativo']:
             for servico in categoria.servicos:
@@ -136,7 +136,9 @@ def editar_servico(id):
         data = schema.load(request.json)
     except ValidationError as err:
         return jsonify({"errors": err.messages}), 400
-
+    
+    novo_status_ativo = request.json.get('ativo', servico.ativo)
+    nova_categoria_id = data.get('id_categoria', servico.id_categoria)
     if novo_status_ativo:
         categoria_alvo = CategoriaServico.query.get(nova_categoria_id)
         if categoria_alvo and not categoria_alvo.ativo:
