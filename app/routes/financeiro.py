@@ -188,6 +188,7 @@ def dashboard_financeiro():
 
     # 4. Cálculo da Taxa de No-Show [RN-06]
     total_ausentes = Agendamento.query.filter_by(status='AUSENTE')
+    total_realizados = query_agendamentos.count()
     if data_inicio: total_ausentes = total_ausentes.filter(Agendamento.data_atendimento >= di)
     if data_fim: total_ausentes = total_ausentes.filter(Agendamento.data_atendimento <= df)
     count_ausentes = total_ausentes.count()
