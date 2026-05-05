@@ -77,7 +77,7 @@ def listar_disponibilidade():
 
     for func in funcionarios:
         # Horário de trabalho e bloqueio de datas [RN-13]
-        dia_semana = data_consulta.weekday() # 0-6
+        dia_semana = data_consulta.isoweekday() %7 # 0-6
         horarios_trabalho = HorarioTrabalho.query.filter_by(
             id_funcionario=func.id, dia_semana=dia_semana
         ).all()
